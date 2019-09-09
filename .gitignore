@@ -3,6 +3,8 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+
+
 # User-specific files
 *.suo
 *.user
@@ -17,12 +19,26 @@
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
-x64/
+#x64/
 x86/
 bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
+
+#Force inlcude
+#!*/lib/*
+!*/lib/[Rr]elease
+!*/lib/[Dd]ebug
+!*/x64/[Dd]ebug/
+*/x64/[Dd]ebug/*.exe
+*/x64/[Dd]ebug/*.cso
+!*/x64/[Rr]elease/
+*/x64/[Rr]elease/*.exe
+*/x64/[Rr]elease/*.cso
+#/*.dll
+#!*/x64/[Rr]elease
+#!*.dll
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -61,11 +77,12 @@ StyleCopReport.xml
 *_i.c
 *_p.c
 *_i.h
+*.cso
 *.ilk
 *.meta
-*.obj
+#*.obj
 *.iobj
-*.pch
+#*.pch
 *.pdb
 *.ipdb
 *.pgc
