@@ -12,8 +12,49 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	// Call super/parent init function (required!)
 	BaseApplication::init(hinstance, hwnd, screenWidth, screenHeight, in, VSYNC, FULL_SCREEN);
 
-	// Initalise scene variables.
-	
+	// Create Mesh object and shader object
+	mesh = new TessellationMesh(renderer->getDevice(), renderer->getDeviceContext());
+	planeMesh = new QuadPlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 120);
+
+	PlaneShader = new TessellationShader(renderer->getDevice(), hwnd);
+	EdgeTesellation = XMFLOAT4(1.0f, 1.0f, 1.0f,1.0f);
+	InsideTesellation = XMFLOAT2(1.0f, 1.0f);
+
+	textureMgr->loadTexture(L"brick", L"res/Moss0.jpg");
+	textureMgr->loadTexture(L"height", L"res/heightmap.jpg");
+	amplitude = 5.0f;
+
+	//Lights
+	//Create Directional Light.
+	light[0] = new Light;
+	light[0]->setAmbientColour(0.15f, 0.15f, 0.15f, 1.0f);
+	light[0]->setDiffuseColour(1.0f, 1.0f, 1.0f, 1.0f);
+	light[0]->setDirection(0.7f, -0.7f, 0.0f);
+	//Default Attenuation Factors
+	//No attenuation for directional light
+	light[0]->setAttenuationFactors(XMFLOAT3(0.f, 0.0f, 0.0f));
+
+	//Create PointLight 1.
+	light[1] = new Light;
+	light[1]->setAmbientColour(0.0f, 0.0f, 0.0f, 1.0f);
+	light[1]->setDiffuseColour(0.0f, 0.0f, 0.0f, 1.0f);
+	light[1]->setPosition(20.0f, 10.0f, 20.0f);
+	light[1]->setDirection(0.f, 0.f, 0.0f);
+
+	//Default Attenuation Factors
+	light[1]->setAttenuationFactors(XMFLOAT3(1.f, 0.175f, 0.0f));
+
+	//Create PointLight 2.
+	light[2] = new Light;
+	light[2]->setAmbientColour(0.0f, 0.0f, 0.0f, 1.0f);
+	light[2]->setDiffuseColour(0.0f, 0.0f, 0.0f, 1.0f);
+	light[2]->setPosition(50.0f, 10.0f, 50.0f);
+	light[2]->setDirection(0.f, 0.f, 0.0f);
+	//Default Attenuation Factors
+	light[2]->setAttenuationFactors(XMFLOAT3(1.f, 0.175f, 0.0f));
+
+
+
 
 }
 
@@ -24,7 +65,7 @@ App1::~App1()
 	BaseApplication::~BaseApplication();
 
 	// Release the Direct3D object.
-	
+
 }
 
 
@@ -50,6 +91,8 @@ bool App1::frame()
 
 bool App1::render()
 {
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix;
+
 	// Clear the scene. (default blue colour)
 	renderer->beginScene(0.39f, 0.58f, 0.92f, 1.0f);
 
@@ -57,16 +100,20 @@ bool App1::render()
 	camera->update();
 
 	// Get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
-	XMMATRIX worldMatrix = renderer->getWorldMatrix();
-	XMMATRIX viewMatrix = camera->getViewMatrix();
-	XMMATRIX projectionMatrix = renderer->getProjectionMatrix();
+	worldMatrix = renderer->getWorldMatrix();
+	viewMatrix = camera->getViewMatrix();
+	projectionMatrix = renderer->getProjectionMatrix();
 
-	
+	// Send geometry data, set shader parameters, render object with shader
+	planeMesh->sendData(renderer->getDeviceContext());
+	PlaneShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,EdgeTesellation, InsideTesellation, textureMgr->getTexture(L"brick"),camera->getPosition(),
+		amplitude, textureMgr->getTexture(L"height"), light);
+	PlaneShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
 
 	// Render GUI
 	gui();
 
-	// Present the rendered scene to the screen.
+	// Swap the buffers
 	renderer->endScene();
 
 	return true;
@@ -82,6 +129,10 @@ void App1::gui()
 	// Build UI
 	ImGui::Text("FPS: %.2f", timer->getFPS());
 	ImGui::Checkbox("Wireframe mode", &wireframeToggle);
+	ImGui::SliderFloat("Tesellation Scalar", &EdgeTesellation.x, 1.0f, 20.0f);
+	ImGui::SliderFloat("Amplitude Heightmap", &amplitude, 1.0f, 100.0f);
+
+
 
 	// Render UI
 	ImGui::Render();
