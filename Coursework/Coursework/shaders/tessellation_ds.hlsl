@@ -116,56 +116,46 @@ WaveCalculations CalculateWaves(float4 vertexPositions)
     WaveCalculations returnValue;
    
     
-	//Wavelenght
-    //float k = waveSettings.w / waveSettings.z;
-    //Frequency
-    float numberOfWaves = ((3.141516 * 2) / waveSettings.z);
+   
     //Phase speed (The speed of the wave(calculated)) (Maybe add gravity as a tweakable constant in imgui)
     //Not needed, can just set my own phaseSpeed
     //float phaseSpeed = sqrt(waveSettings.w * numberOfWaves);
     
-    //Get amplitude based on the "Steepness" value and the number of waves (How pointy they are and high).
-    
-    //Gets the amplitude value from IMGUI and divides by the number of waves to make sure waves overlap between each other and look funny.
-    //This happens when there are too many waves next to each other.
-    //Preventing the amplitude being too high to overlap with the next wave (between 0 and 1)
+  
+    //Spacial Wavenumber ()
+    //The spatial wavenumber tells you the number of wavelengths per unit distance https://sciencing.com/calculate-wavenumber-5152608.html
+    float numberOfWaves = ((3.141516 * 2) / waveSettings.z);
     
     // Nvidia suggests to do to prevent waves overlaping with each other and get the maximum height possible ()
     
+    //Formula from NVIDIA https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models
+    //Where x,y,t are the inputs to the functions
+    //Where P are the final vertex positions, D = direction, w = sqrt(wavenumber)
+    
+    /*      (x + (Q*A)*D.x*cos(dot(w*D, (x,y))+time*phaseSpeed)
+    /*P() = (y + (Q*A)*D.y*cos(dot(w*D, (x,y))+time*phaseSpeed)
+            (Asin(dor(w*D,(x,y))+time*phaseSpeed))                                              
+    */     
+    
+    /*Here Qi is a parameter that controls the steepness of the waves. For a single wave i, Qi of 0 gives the usual rolling sine wave
+    and Qi = 1/(wi*Ai ) gives a sharp crest. Larger values of Qi should be avoided, because they will cause loops to form above the
+    wave crests. In fact, we can leave the specification of Q as a "steepness" parameter for the production artist, allowing a
+    range of 0 to 1, and using Qi = Q/(wi Ai x numWaves) to vary from totally smooth waves to the sharpest waves we can produce.*/
+    
     //This makes sure that the smoothenes value will never be big enough to make the waves overlap with each other and look bad
-    float cappedWaveSmothness = WaveSmoothness * sqrt(numberOfWaves) * waveSettings.y;
-    if (cappedWaveSmothness>1.0f)
-        cappedWaveSmothness = 1.0f;
+    float clampedWavePeak = WaveSmoothness * sqrt(numberOfWaves) * waveSettings.y;
+    if (clampedWavePeak > 1.0f)
+        clampedWavePeak = 1.0f;
     
     //Calculate amplitude to apply on the wave (without getting any overlaping) (for X and Z values, for the Y we still use inputed Amplitude)
-    float amplitude = cappedWaveSmothness / (waveSettings.y * numberOfWaves * sqrt(numberOfWaves));
+    float amplitude = clampedWavePeak / (waveSettings.y * numberOfWaves * sqrt(numberOfWaves));
     
     //Get direction and normalize it (Make sure its between 0 and 1)
     float2 waveDirection = normalize(WaveDirection.xy);
     
     //Precalculated trigonometric value that will create the wave (The thing to put inside the trigonometric functions)
     float TrigValue = numberOfWaves * dot(waveDirection, vertexPositions.xz) + waveSettings.w * waveSettings.x;
-    
-   // float w = sqrt(7 * 2 * 3.141516 / waveSettings.z);
-    //Factor of wave peaks
-    //float Q = WaveSmoothness / w * waveSettings.y;
-    //Directional vector of the wave.
-    //This will alter in which direction the wave moves. 
-    //From 1 to 0 the bigger the higher.
-    
-    
-    
-    //vertexPositions.x += Q * D.x * cos(w * dot(D.xy, vertexPositions.xy) + waveSettings.w * waveSettings.x);
-    //vertexPositions.y = waveSettings.y * sin(w * dot(D.xy, vertexPositions.xy) + waveSettings.w * waveSettings.x);
-   // vertexPositions.z += Q * D.y * cos(w * dot(D.xy, vertexPositions.xy) + waveSettings.w * waveSettings.x);
 
-    //Formula from NVIDIA
-    //Where x,y,t are the inputs to the functions
-    //Where P are the final vertex positions
-    /*      (x + (Q*A)*D.x*cos(dot(w*D, (x,y))+time*phaseSpeed)
-    /*P() = (y + (Q*A)*D.y*cos(dot(w*D, (x,y))+time*phaseSpeed)
-            (A)                                              
-    */     
     
     //Note: Multiplying the number of waves inside of the trigonometric functions changes the frequency of the waves, however doing it outside as NVIDIA suggests does not
     //It acts as a speed multiplier instead.
@@ -186,14 +176,14 @@ WaveCalculations CalculateWaves(float4 vertexPositions)
     waveDirection.y * waveSettings.y * cos(TrigValue),
     1 - pow(waveDirection.y, 2) * waveSettings.y * sin(TrigValue));
     
-    //Help here
+    //Help here PLZ
     float3 normal = normalize(dot(tangent, binormal));
     returnValue.normal = normal;
     returnValue.vertexPosition = vertexPositions;
    
 
-    //Wave Settings
-    // x = time; //y = amplitude(Steepness); //z =  frequency (WaveL); //w = speed (gravity);
+    //Wave Settings (on brakets are the upgraded values)
+    // x = time; //y = amplitude; //z =  frequency (WaveLenght); //w = PhaseSpeed of the wave;
     
     return returnValue;
 }
