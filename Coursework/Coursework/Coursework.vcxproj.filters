@@ -24,6 +24,9 @@
     <ClCompile Include="QuadPlaneMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HeightmapShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="TessellationShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -35,11 +38,26 @@
     <ClInclude Include="QuadPlaneMesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HeightmapShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="TessellationShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="shaders\heightmap_ds.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\heightmap_hs.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\heightmap_ps.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\heightmap_vs.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
     <FxCompile Include="shaders\tessellation_ds.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>

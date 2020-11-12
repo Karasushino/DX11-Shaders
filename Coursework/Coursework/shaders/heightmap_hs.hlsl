@@ -61,14 +61,14 @@ ConstantOutputType PatchConstantFunction(InputPatch<InputType, 4> inputPatch, ui
     //output.inside[1] = clamp(30 * EdgeTesellation.x / distanceFromPlane, 1, 64);
     
     
-    output.edges[0] = clamp(100 / distanceFromPlane*EdgeTesellation.x, 1, 64);
-    output.edges[1] = clamp(100 / distanceFromPlane * EdgeTesellation.x, 1, 64);
-    output.edges[2] = clamp(100 / distanceFromPlane * EdgeTesellation.x, 1, 64);
-    output.edges[3] = clamp(100 / distanceFromPlane * EdgeTesellation.x, 1, 64);
+     output.edges[0] = clamp(EdgeTesellation.x , 1, 64);
+    output.edges[1] = clamp(EdgeTesellation.x, 1, 64);
+ output.edges[2] = clamp(EdgeTesellation.x, 1, 64);
+    output.edges[3] = clamp(EdgeTesellation.x, 1, 64);
 
    // Set the tessellation factor for tessallating inside the triangle.
-    output.inside[0] = clamp(100 / distanceFromPlane * EdgeTesellation.x, 1, 64);
-    output.inside[1] = clamp(100 / distanceFromPlane * EdgeTesellation.x, 1, 64);
+    output.inside[0] = clamp(EdgeTesellation.x, 1, 64);
+    output.inside[1] = clamp(EdgeTesellation.x, 1, 64);
     
 
     return output;
@@ -93,6 +93,7 @@ OutputType main(InputPatch<InputType, 4> patch, uint pointId : SV_OutputControlP
     output.tex = patch[pointId].tex;
 
     output.normal = patch[pointId].normal;
+    
 
     return output;
 }

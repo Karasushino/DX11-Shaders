@@ -4,6 +4,7 @@
 
 // Includes
 #include "DXF.h"	// include dxframeworkw
+#include "HeightmapShader.h"
 #include "TessellationShader.h"
 #include "QuadPlaneMesh.h"
 
@@ -24,15 +25,29 @@ protected:
 
 private:
 	TessellationMesh* mesh;
-	TessellationShader* PlaneShader;
+	HeightmapShader* PlaneShader;
+	TessellationShader* WaterShader;
 	XMFLOAT4 EdgeTesellation;
 	XMFLOAT2 InsideTesellation;
 	float amplitude;
-
+	float Sealevel;
 
 	Light* light[3];
 
+
+	// x = time;
+	//y = amplitude;
+	//z =  frequency;
+	//w = speed;
+	XMFLOAT4 WaveSettings;
+	XMFLOAT3 WaveDirection;
+	float direction[3] = { 0 };
+	float smootheness = 1.0f;
+
+
 	QuadPlaneMesh* planeMesh;
+	QuadPlaneMesh* waterPlaneMesh;
+
 };
 
 #endif

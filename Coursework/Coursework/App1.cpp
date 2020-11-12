@@ -15,13 +15,17 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	// Create Mesh object and shader object
 	mesh = new TessellationMesh(renderer->getDevice(), renderer->getDeviceContext());
 	planeMesh = new QuadPlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 120);
+	waterPlaneMesh = new QuadPlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 120);
 
-	PlaneShader = new TessellationShader(renderer->getDevice(), hwnd);
+	PlaneShader = new HeightmapShader(renderer->getDevice(), hwnd);
+	WaterShader = new TessellationShader(renderer->getDevice(), hwnd);
+
 	EdgeTesellation = XMFLOAT4(1.0f, 1.0f, 1.0f,1.0f);
 	InsideTesellation = XMFLOAT2(1.0f, 1.0f);
 
 	textureMgr->loadTexture(L"brick", L"res/Moss0.jpg");
-	textureMgr->loadTexture(L"height", L"res/heightmap.jpg");
+	textureMgr->loadTexture(L"height", L"res/height2.png");
+	textureMgr->loadTexture(L"water", L"res/water.jpg");
 	amplitude = 5.0f;
 
 	//Lights
@@ -54,7 +58,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light[2]->setAttenuationFactors(XMFLOAT3(1.f, 0.175f, 0.0f));
 
 
-
+	XMFLOAT4 WaveSettings = XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f);
 
 }
 
@@ -78,7 +82,8 @@ bool App1::frame()
 	{
 		return false;
 	}
-	
+	WaveSettings.x += timer->getTime();
+	WaveDirection = XMFLOAT3(direction[0], direction[1], direction[2]);
 	// Render the graphics.
 	result = render();
 	if (!result)
@@ -110,6 +115,14 @@ bool App1::render()
 		amplitude, textureMgr->getTexture(L"height"), light);
 	PlaneShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
 
+
+	XMMATRIX waterWorldMatrix = worldMatrix * XMMatrixTranslation(0.0f,Sealevel,0.0f);
+
+	WaterShader->setShaderParameters(renderer->getDeviceContext(), waterWorldMatrix, viewMatrix, projectionMatrix, EdgeTesellation, InsideTesellation, camera->getPosition(),
+		WaveSettings, textureMgr->getTexture(L"water"), WaveDirection, smootheness);
+	WaterShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
+
+
 	// Render GUI
 	gui();
 
@@ -131,8 +144,14 @@ void App1::gui()
 	ImGui::Checkbox("Wireframe mode", &wireframeToggle);
 	ImGui::SliderFloat("Tesellation Scalar", &EdgeTesellation.x, 1.0f, 20.0f);
 	ImGui::SliderFloat("Amplitude Heightmap", &amplitude, 1.0f, 100.0f);
-
-
+	ImGui::SliderFloat("Wave Amplitude: ", &WaveSettings.y, 1.0f, 20.0f);
+	ImGui::SliderFloat("Wave Frequency: ", &WaveSettings.z, 1.0f, 20.0f);
+	ImGui::SliderFloat("Wave Speed: ", &WaveSettings.w, 1.0f, 20.0f);
+	//Smootheness
+	//Direction Vector
+	ImGui::SliderFloat3("Wave Direction: ", direction, -1.0f, 1.0f);
+	ImGui::SliderFloat("Wave Smoothness: ", &smootheness, 0.0f, 1.0f);
+	ImGui::SliderFloat("Sea Level: ", &Sealevel, -10.0f, 10.0f);
 
 	// Render UI
 	ImGui::Render();

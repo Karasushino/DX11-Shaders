@@ -26,7 +26,6 @@ OutputType main(InputType input)
     // Pass the input color into the hull shader.
     output.tex = input.tex;
     output.normal = input.normal;
-
     
     return output;
 }
