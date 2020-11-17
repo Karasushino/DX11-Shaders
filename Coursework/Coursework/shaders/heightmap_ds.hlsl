@@ -80,7 +80,7 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     float bottomY = heightmapTexture.SampleLevel(displacementSampler, bottomC, 0).r;
     float topY = heightmapTexture.SampleLevel(displacementSampler, topC, 0).r;
     
-    //Get tangent and bitan and cross product them to get normal. 
+    //Get tange nt and bitan and cross product them to get normal. 
     //Get Directional vector between right and left and get tangent.
     float3 tangent = normalize(float3(2.0f * (1.0f / 100.0f), (rightY - leftY) * amplitude, 0.0f));
     //Get Directional vector between top and bottom and get tangent.

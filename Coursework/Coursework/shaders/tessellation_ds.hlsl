@@ -82,11 +82,6 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     
     
     
-     
-    //float4 temp = heightmapTexture.SampleLevel(displacementSampler, texturePosition.xy, 0);
-    //float height = temp.y;
-    //vertexPosition.y = height * amplitude;
-    
     WaveCalculations Wave;
 
     
@@ -166,19 +161,12 @@ WaveCalculations CalculateWaves(float4 vertexPositions)
 
     //Calculate Normals
     
-    //Tangent Matrix in X,Y,Z form
-    float3 tangent = float3(1 - pow(waveDirection.x, 2) * waveSettings.y * sin(TrigValue),
-    waveDirection.x * waveSettings.y * cos(TrigValue),
-    -waveDirection.x * waveDirection.y * waveSettings.y * sin(TrigValue));
+    float3 normal = float3(-waveDirection.x * waveSettings.y * cos(TrigValue),
+    1  * -clampedWavePeak*(waveSettings.y) * sin(TrigValue),
+    -waveDirection.y * waveSettings.y * cos(TrigValue));
     
-    //Binormal Matrix in X,Y,Z form
-    float binormal = float3(-waveDirection.x * waveDirection.y * waveSettings.y * sin(TrigValue),
-    waveDirection.y * waveSettings.y * cos(TrigValue),
-    1 - pow(waveDirection.y, 2) * waveSettings.y * sin(TrigValue));
     
-    //Help here PLZ
-    float3 normal = normalize(dot(tangent, binormal));
-    returnValue.normal = normal;
+    returnValue.normal = normalize(normal);
     returnValue.vertexPosition = vertexPositions;
    
 

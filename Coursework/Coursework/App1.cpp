@@ -24,7 +24,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	InsideTesellation = XMFLOAT2(1.0f, 1.0f);
 
 	textureMgr->loadTexture(L"brick", L"res/Moss0.jpg");
-	textureMgr->loadTexture(L"height", L"res/height2.png");
+	textureMgr->loadTexture(L"height", L"res/heightmap.jpg");
 	textureMgr->loadTexture(L"water", L"res/water.jpg");
 	amplitude = 5.0f;
 

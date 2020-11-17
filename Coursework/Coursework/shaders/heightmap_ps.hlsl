@@ -93,5 +93,5 @@ float4 main(InputType input) : SV_TARGET
     
     
     //Combine with the texture and return
-    return lightColour * textureColour;
+    return float4(lightColour*textureColour);
 }
