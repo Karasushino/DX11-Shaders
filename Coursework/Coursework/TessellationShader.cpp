@@ -101,8 +101,8 @@ void TessellationShader::initShader(const wchar_t* vsFilename, const wchar_t* hs
 
 
 void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
-	XMFLOAT4 EdgeTesellation, XMFLOAT2 InsideTesellation, XMFLOAT3 CameraPosInput, XMFLOAT4 InputWaveSettings, ID3D11ShaderResourceView* texture,
-	XMFLOAT3 InputWaveDirection, float WaveSmoothness)
+	XMFLOAT4 EdgeTesellation, XMFLOAT2 InsideTesellation, XMFLOAT3 CameraPosInput, XMFLOAT4 InputWaveSettings[], ID3D11ShaderResourceView* texture,
+	float InputWaveDirection[], float time)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -143,9 +143,14 @@ void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(SeaBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	SeaBufferType* heightPtr = (SeaBufferType*)mappedResource.pData;
-	heightPtr->WaveSettings = InputWaveSettings;
-	heightPtr->WaveDirection = InputWaveDirection;
-	heightPtr->WaveSmoothness = WaveSmoothness;
+
+	for (int i = 0; i < 3; i++)
+	{
+		heightPtr->WaveSettings[i] = InputWaveSettings[i];
+		heightPtr->WaveDirectionTimePadding[i] = XMFLOAT4(InputWaveDirection[i], time, 1.f, 1.f);
+
+	}
+	
 
 	deviceContext->Unmap(SeaBuffer, 0);
 	deviceContext->DSSetConstantBuffers(1, 1, &SeaBuffer);

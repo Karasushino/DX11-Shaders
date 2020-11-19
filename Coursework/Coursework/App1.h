@@ -35,15 +35,20 @@ private:
 	Light* light[3];
 
 
-	// x = time;
+	// x = Peakness;
 	//y = amplitude;
 	//z =  frequency;
 	//w = speed;
-	XMFLOAT4 WaveSettings;
-	XMFLOAT3 WaveDirection;
-	float direction[3] = { 0 };
-	float smootheness = 1.0f;
+	XMFLOAT4 WaveSettings[3];
 
+	//Angle
+	float WaveDirection[3] = { 0.f };
+
+	//Time passed
+	float time = 0.f;
+
+	float direction[3] = { 0.f };
+	float diff[3] = { 0.f };
 
 	QuadPlaneMesh* planeMesh;
 	QuadPlaneMesh* waterPlaneMesh;

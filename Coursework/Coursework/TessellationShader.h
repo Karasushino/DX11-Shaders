@@ -27,17 +27,17 @@ public:
 
 	struct SeaBufferType
 	{
-		XMFLOAT4 WaveSettings;
-		XMFLOAT3 WaveDirection;
-		float WaveSmoothness;
+		XMFLOAT4 WaveSettings[3];
+		XMFLOAT4 WaveDirectionTimePadding[3];
+
 	};
 
 	TessellationShader(ID3D11Device* device, HWND hwnd);
 	~TessellationShader();
 
-	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &world, const XMMATRIX &view, const XMMATRIX &projection,
-		XMFLOAT4 EdgeTesselation, XMFLOAT2 InsideTesselation, XMFLOAT3 CameraPosInput, XMFLOAT4 inputWaveSettings, ID3D11ShaderResourceView* heightmapTexture,
-		XMFLOAT3 InputWaveDirection, float WaveSmoothness);
+	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
+		XMFLOAT4 EdgeTesellation, XMFLOAT2 InsideTesellation, XMFLOAT3 CameraPosInput, XMFLOAT4 InputWaveSettings[], ID3D11ShaderResourceView* texture,
+		float direction[], float time);
 
 private:
 	void initShader(const wchar_t* vsFilename, const wchar_t* psFilename);
