@@ -38,6 +38,7 @@ struct OutputType
     float4 position : SV_POSITION;
     float2 tex : TEXCOORD0;
     float3 normal : NORMAL;
+    float4 worldPosition : TEXCOORD1;
 };
 
 struct WaveCalculations
@@ -92,15 +93,16 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     
     for (int i = 1; i<3; i++)
     {
-        Wave = CalculateWaves(baseVertexPosition, waveSettings[i], WaveDirection[i], time);
+       Wave = CalculateWaves(baseVertexPosition, waveSettings[i], WaveDirection[i], time);
    
        vertexPosition += float4(Wave.vertexPosition, 1);
+       
         //Nvidia says that 1- should b outside of the total sum
        normalPosition.x += Wave.normal.x;
        normalPosition.y += 1 - Wave.normal.y;
        normalPosition.z += Wave.normal.z;
-
     }
+    
     normalPosition = normalize(normalPosition);
     //normalPosition = float3(0.0f, -1.0f, 0.0f);
     //All jumowombo preparation
@@ -112,6 +114,9 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     output.position = mul(float4(vertexPosition), worldMatrix);
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
+    
+    output.worldPosition = mul(vertexPosition, worldMatrix);
+    
     return output;
 }
 

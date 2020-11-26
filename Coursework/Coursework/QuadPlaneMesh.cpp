@@ -146,5 +146,6 @@ void QuadPlaneMesh::sendData(ID3D11DeviceContext* deviceContext, D3D_PRIMITIVE_T
 	deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	// Set the type of primitive that should be rendered from this vertex buffer, in this case control patch for tessellation.
 	deviceContext->IASetPrimitiveTopology(top);
+
 }
 

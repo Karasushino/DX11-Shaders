@@ -126,10 +126,11 @@ bool App1::render()
 
 
 	XMMATRIX waterWorldMatrix = worldMatrix * XMMatrixTranslation(0.0f,Sealevel,0.0f);
-
+	renderer->setAlphaBlending(1);
 	WaterShader->setShaderParameters(renderer->getDeviceContext(), waterWorldMatrix, viewMatrix, projectionMatrix, EdgeTesellation, InsideTesellation, camera->getPosition(),
-		WaveSettings, textureMgr->getTexture(L"water"), WaveDirection, time);
+		WaveSettings, textureMgr->getTexture(L"height"), WaveDirection, time);
 	WaterShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
+	renderer->setAlphaBlending(0);
 
 
 	// Render GUI

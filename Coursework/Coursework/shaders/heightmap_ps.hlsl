@@ -35,14 +35,9 @@ float4 calculateDiffuseLighting(float3 lightDirection, float3 normal, float4 ldi
 float calculateAttenuation(float3 attenuation, float distance)
 {
     //Attenuation Formula Calculation.
-   
-    
     float returnAtt = 1 / (attenuation.x + (attenuation.y * distance) +
       (attenuation.z * pow(distance, 2)));
-        
-    
-
-    
+       
     return returnAtt;
 
 }
@@ -60,9 +55,8 @@ float4 main(InputType input) : SV_TARGET
     
 	// Sample the texture. Calculate light intensity and colour, return light*texture for final pixel colour.
     float4 textureColour = texture0.Sample(Sampler0, input.tex);
-    
    
-    
+    textureColour = float4(textureColour.xyz, 0.7f);
     //Caluclate the Light vector of all lights
     for (int z = 0; z < numberOfLights - 1; z++)
     {
@@ -76,18 +70,18 @@ float4 main(InputType input) : SV_TARGET
     //float4 lightColour = ambient + (calculateDiffuseLighting(lightVector, input.normal, diffuse) + 
     //calculateAttenuation(constantFactor,linearFactor,quadraticFactor,distance));
 	
-    /**Caculate ambient only with one light since later on it will be changed as just a single parameter
+    /**Calculate ambient only with one light since later on it will be changed as just a single parameter
     independent of lightColour object, ambient should only one after all*/
     float4 lightColour = ambient[0];
-    //Caulculate light
     
+    //Caulculate light
     for (int i = 0; i < numberOfLights - 1; i++)
     {
         //Calcuate light
         lightColour += calculateDiffuseLighting(lightVector[i], input.normal, diffuse[i + 1]);
         lightColour += calculateAttenuation((float3) attenuation[i + 1], distance[i]);
-
     }
+    
     //Remember to invert the direction for direcional light:(
     lightColour += calculateDiffuseLighting(-(float3) direction[0], input.normal, diffuse[0]);
     
