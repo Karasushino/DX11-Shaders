@@ -506,6 +506,26 @@ void D3D::setWireframeMode(bool b)
 	}
 }
 
+void D3D::setNoCullMode(bool b)
+{
+	cullModeState = b;
+	if (cullModeState)
+	{
+		deviceContext->RSSetState(rasterStateNoCull);
+	}
+	else
+	{
+		deviceContext->RSSetState(rasterState);
+	}
+}
+
+bool D3D::getCullMode()
+{
+	return cullModeState;
+}
+
+
+
 bool D3D::getWireframeState() 
 {
 	return wireframeState;
