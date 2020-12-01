@@ -8,6 +8,8 @@ cbuffer MatrixBuffer : register(b0)
     matrix worldMatrix;
     matrix viewMatrix;
     matrix projectionMatrix;
+    matrix lightViewMatrix;
+    matrix lightProjectionMatrix;
 };
 
 cbuffer HeighmapBuffer : register(b1)
@@ -35,6 +37,7 @@ struct OutputType
     float2 tex : TEXCOORD0;
     float3 normal : NORMAL;
     float3 worldPosition : TEXCOORD1;
+    float4 lightViewPos : TEXCOORD2;
 };
 
 [domain("quad")]
@@ -69,10 +72,11 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     // Recalculate normals for a Heightmap
     /**Source: Introduction to 3D Game Programming with DirectX11 by Frank D.Luna. Page:614-615*/
     //Calculate neighbouring coordinates
-    float2 leftC = texturePosition + float2(-1.f / 100.f, 0.0f);
-    float2 rightC = texturePosition + float2(1.f / 100.f, 0.0f);
-    float2 bottomC = texturePosition + float2(0.0f, 1.f / 100.f);
-    float2 topC = texturePosition + float2(0.0f, -1.f / 100.f);
+    
+    float2 leftC = texturePosition - float2(-1.f / 120.f, 0.0f);
+    float2 rightC = texturePosition - float2(1.f / 120.f, 0.0f);
+    float2 bottomC = texturePosition - float2(0.0f, 1.f / 120.f);
+    float2 topC = texturePosition - float2(0.0f, -1.f / 120.f);
     
     //Sample neighbouring heightmap Y texture values
     float leftY = heightmapTexture.SampleLevel(displacementSampler, leftC, 0).r;
@@ -82,10 +86,12 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     
     //Get tange nt and bitan and cross product them to get normal. 
     //Get Directional vector between right and left and get tangent.
-    float3 tangent = normalize(float3(2.0f * (1.0f / 100.0f), (rightY - leftY) * amplitude, 0.0f));
+    float3 tangent = normalize(float3(2.0f * (1.0f / 120.0f), (rightY - leftY), 0.0f));
     //Get Directional vector between top and bottom and get tangent.
-    float3 bitan = normalize(float3(0.0f, (bottomY - topY) * amplitude, -2.0f * (1.0f / 100.0f)));
+    float3 bitan = normalize(float3(0.0f, (bottomY- topY), -2.0f * (1.0f / 120.0f)));
     float3 normal = cross(tangent, bitan);
+    
+
     
     normalPosition = normal;
     
@@ -105,9 +111,13 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
     
+    output.lightViewPos = mul(float4(vertexPosition, 1.0f), worldMatrix);
+    output.lightViewPos = mul(output.lightViewPos, lightViewMatrix);
+    output.lightViewPos = mul(output.lightViewPos, lightProjectionMatrix);
+    
     
     output.worldPosition = mul(float4(vertexPosition, 1.0f), worldMatrix).xyz;
     
     return output;
-}
+}   
 

@@ -13,6 +13,17 @@ class HeightmapShader : public BaseShader
 
 public:
 
+	struct MatrixBufferType
+	{
+		XMMATRIX world;
+		XMMATRIX view;
+		XMMATRIX projection;
+		XMMATRIX lightView;
+		XMMATRIX lightProjection;
+	};
+
+
+
 	struct HullBufferType {
 		XMFLOAT4 Edges;
 		XMFLOAT2 Inside;
@@ -47,7 +58,7 @@ public:
 
 	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &world, const XMMATRIX &view, const XMMATRIX &projection,
 		XMFLOAT4 EdgeTesselation, XMFLOAT2 InsideTesselation,ID3D11ShaderResourceView* texture, XMFLOAT3 CameraPosInput, float amplitude, ID3D11ShaderResourceView* heightmapTexture,
-		Light* light[]);
+		Light* light[], ID3D11ShaderResourceView* depthTexture);
 
 private:
 	void initShader(const wchar_t* vsFilename, const wchar_t* psFilename);
@@ -59,5 +70,5 @@ private:
 	ID3D11Buffer* cameraBuffer;
 	ID3D11Buffer* heighMapBuffer;
 	ID3D11Buffer* lightBuffer;
-
+	ID3D11SamplerState* sampleStateShadow;
 };

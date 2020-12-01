@@ -7,6 +7,9 @@
 #include "HeightmapShader.h"
 #include "TessellationShader.h"
 #include "QuadPlaneMesh.h"
+#include "DepthShaderHeightmap.h"
+#include "DepthShader.h"
+#include "TextureShader.h"
 
 
 class App1 : public BaseApplication
@@ -22,15 +25,28 @@ public:
 protected:
 	bool render();
 	void gui();
+	void depthPass();
+	void finalPass();
+	
 
 private:
 	TessellationMesh* mesh;
 	HeightmapShader* PlaneShader;
 	TessellationShader* WaterShader;
+	DepthShaderHeightmap* DepthHeightmapShader;
+	DepthShader* depthShader;
+	ShadowMap* depthmapDirectional;
+
+	TextureShader* textureShader;
+
+
+
 	XMFLOAT4 EdgeTesellation;
 	XMFLOAT2 InsideTesellation;
 	float amplitude;
 	float Sealevel;
+
+	float position[3];
 
 	Light* light[3];
 
@@ -52,6 +68,8 @@ private:
 
 	QuadPlaneMesh* planeMesh;
 	QuadPlaneMesh* waterPlaneMesh;
+	SphereMesh* CubeShadow;
+	OrthoMesh* smolOrthoMesh;
 
 };
 
