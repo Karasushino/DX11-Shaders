@@ -2,7 +2,7 @@
 Starter application for CMP301 coursework
 Updated for 2020
 
-Name:
+Name: Antoni Carrascosa Vallori
 
-Number:
+Number: 1800275
 
