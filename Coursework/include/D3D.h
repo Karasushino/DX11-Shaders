@@ -76,6 +76,10 @@ public:
 	void setBackBufferRenderTarget();	///< Sets the back buffer as the render target
 	void resetViewport();				///< Restores viewport if dimensions of render target were different
 
+
+	void setNoCullMode(bool b); ///< Sets the cull mode to not cull back
+	bool getCullMode(); ///< Return the mode for culling used
+
 private:
 	void createDevice();
 	void createSwapchain();
@@ -94,6 +98,7 @@ protected:
 	bool zbufferState;		///< Variable tracks z-buffer state
 	bool wireframeState;	///< Variable tracks wireframe state
 	bool alphaBlendState;	///< Variable tracks alpha blending state
+	bool cullModeState;     ///<Variable tracks cull or no back cull state
 
 	bool isFullscreen;
 	HWND* wnd;
@@ -121,6 +126,9 @@ protected:
 	ID3D11BlendState* alphaEnableBlendingState;	///< Alpha blend enabled state
 	ID3D11BlendState* alphaDisableBlendingState;///< Alpha blend disabled state
 	D3D11_VIEWPORT viewport;					///< Default viewport object
+
+
+	ID3D11RasterizerState* rasterStateNoCull;		///< No back culling Raster State
 };
 
 #endif

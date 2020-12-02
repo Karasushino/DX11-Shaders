@@ -27,14 +27,20 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	DepthHeightmapShader = new DepthShaderHeightmap(renderer->getDevice(), hwnd);
 	depthShader = new DepthShader(renderer->getDevice(), hwnd);
 	textureShader = new TextureShader(renderer->getDevice(), hwnd);
+	grassShader = new GeometryShader(renderer->getDevice(), hwnd);
 
+	grassMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 120);
 
 	EdgeTesellation = XMFLOAT4(1.0f, 1.0f, 1.0f,1.0f);
 	InsideTesellation = XMFLOAT2(1.0f, 1.0f);
 
+	textureMgr->loadTexture(L"WindMap", L"res/WaterDistortion.png");
 	textureMgr->loadTexture(L"brick", L"res/Moss0.jpg");
 	textureMgr->loadTexture(L"height", L"res/heightmap.jpg");
 	textureMgr->loadTexture(L"water", L"res/water.jpg");
+	textureMgr->loadTexture(L"Noise", L"res/noise.jpg");
+	textureMgr->loadTexture(L"GrassSpawn", L"res/grassNoise.jpg");
+
 	amplitude = 20.0f;
 	// Variables for defining shadow map
 	int shadowmapWidth = 1024;
@@ -239,6 +245,13 @@ void App1::finalPass()
 	//textureShader->render(renderer->getDeviceContext(), smolOrthoMesh->getIndexCount());
 
 
+	
+	renderer->setNoCullMode(true);
+	grassMesh->sendData(renderer->getDeviceContext(), D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+	grassShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"WindMap"), time, textureMgr->getTexture(L"height"),
+		textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"));
+	grassShader->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
+	renderer->setNoCullMode(false);
 
 	// Render GUI
 	gui();
@@ -304,7 +317,6 @@ void App1::gui()
 
 	ImGui::SliderFloat3("light position:", position, -50.f, 50.f);
 	light[0]->setPosition(position[0], position[1], position[2]);
-
 
 
 	// Render UI

@@ -215,6 +215,14 @@ void D3D::createDefaultRasterState()
 	device->CreateRasterizerState(&rasterDesc, &rasterState);
 	deviceContext->RSSetState(rasterState);
 
+	//Rasterizer with no culling
+	rasterDesc.CullMode = D3D11_CULL_NONE;
+	device->CreateRasterizerState(&rasterDesc, &rasterStateNoCull);
+
+	
+	//Reset cull mode to back
+	rasterDesc.CullMode = D3D11_CULL_BACK;
+	rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
 	//create raster state with wireframe enabled
 	rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
 	device->CreateRasterizerState(&rasterDesc, &rasterStateWF);

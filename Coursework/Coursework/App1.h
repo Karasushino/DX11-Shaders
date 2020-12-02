@@ -10,6 +10,7 @@
 #include "DepthShaderHeightmap.h"
 #include "DepthShader.h"
 #include "TextureShader.h"
+#include "GeometryShader.h"
 
 
 class App1 : public BaseApplication
@@ -35,7 +36,10 @@ private:
 	TessellationShader* WaterShader;
 	DepthShaderHeightmap* DepthHeightmapShader;
 	DepthShader* depthShader;
+	GeometryShader* grassShader;
+
 	ShadowMap* depthmapDirectional;
+
 
 	TextureShader* textureShader;
 
@@ -68,6 +72,7 @@ private:
 
 	QuadPlaneMesh* planeMesh;
 	QuadPlaneMesh* waterPlaneMesh;
+	PlaneMesh* grassMesh;
 	SphereMesh* CubeShadow;
 	OrthoMesh* smolOrthoMesh;
 
