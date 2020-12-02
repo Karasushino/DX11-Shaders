@@ -8,8 +8,6 @@ cbuffer MatrixBuffer : register(b0)
     matrix worldMatrix;
     matrix viewMatrix;
     matrix projectionMatrix;
-    matrix lightViewMatrix;
-    matrix lightProjectionMatrix;
 };
 
 cbuffer HeighmapBuffer : register(b1)
@@ -34,11 +32,7 @@ struct InputType
 struct OutputType
 {
     float4 position : SV_POSITION;
-    float2 tex : TEXCOORD0;
-    float3 normal : NORMAL;
-    float3 worldPosition : TEXCOORD1;
-    float4 lightViewPos : TEXCOORD2;
-    float4 depthPosition : TEXCOORD3;
+    float4 depthPosition : TEXCOORD0;
 
 };
 
@@ -71,55 +65,20 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     float3 n2 = lerp(patch[3].normal, patch[2].normal, uvwCoord.y);
     float3 normalPosition = lerp(n1, n2, uvwCoord.x);
     
-    // Recalculate normals for a Heightmap
-    /**Source: Introduction to 3D Game Programming with DirectX11 by Frank D.Luna. Page:614-615*/
-    //Calculate neighbouring coordinates
     
-    float2 leftC = texturePosition - float2(-1.f / 120.f, 0.0f);
-    float2 rightC = texturePosition - float2(1.f / 120.f, 0.0f);
-    float2 bottomC = texturePosition - float2(0.0f, 1.f / 120.f);
-    float2 topC = texturePosition - float2(0.0f, -1.f / 120.f);
     
-    //Sample neighbouring heightmap Y texture values
-    float leftY = heightmapTexture.SampleLevel(displacementSampler, leftC, 0).r;
-    float rightY = heightmapTexture.SampleLevel(displacementSampler, rightC, 0).r;
-    float bottomY = heightmapTexture.SampleLevel(displacementSampler, bottomC, 0).r;
-    float topY = heightmapTexture.SampleLevel(displacementSampler, topC, 0).r;
-    
-    //Get tange nt and bitan and cross product them to get normal. 
-    //Get Directional vector between right and left and get tangent.
-    float3 tangent = normalize(float3(2.0f * (1.0f / 120.0f), (rightY - leftY), 0.0f));
-    //Get Directional vector between top and bottom and get tangent.
-    float3 bitan = normalize(float3(0.0f, (bottomY- topY), -2.0f * (1.0f / 120.0f)));
-    float3 normal = cross(tangent, bitan);
-    
-
-    
-    normalPosition = normal;
-    
-     
     float4 temp = heightmapTexture.SampleLevel(displacementSampler, texturePosition.xy, 0);
     float height = temp.y;
     vertexPosition.y = height * amplitude;
     
     
-    //All jumowombo preparation
-    output.tex = texturePosition;
-    // Calculate the normal vector against the world matrix only and normalise.
-    output.normal = mul(normalPosition, (float3x3) worldMatrix);
-    output.normal = normalize(output.normal);
      // Calculate the position of the new vertex against the world, view, and projection matrices.
     output.position = mul(float4(vertexPosition, 1.0f), worldMatrix);
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
     
-    output.lightViewPos = mul(float4(vertexPosition, 1.0f), worldMatrix);
-    output.lightViewPos = mul(output.lightViewPos, lightViewMatrix);
-    output.lightViewPos = mul(output.lightViewPos, lightProjectionMatrix);
-    
-    
-    output.worldPosition = mul(float4(vertexPosition, 1.0f), worldMatrix).xyz;
-    
+    output.depthPosition = output.position;
+
     return output;
 }   
 

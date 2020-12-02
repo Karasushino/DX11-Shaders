@@ -9,7 +9,7 @@ cbuffer LightBuffer : register(b0)
     float4 diffuse[3];
     float4 position[3];
     float4 direction[3];
-    float4 attenuation[3];   
+    float4 attenuation[3];
 };
 
 struct InputType
@@ -124,12 +124,11 @@ float4 main(InputType input) : SV_TARGET
      
          // Calculate the projected texture coordinasetes.
     float2 pTexCoord = getProjectiveCoords(input.lightViewPos);
-    //return float4(pTexCoord.xy, 0, 1);
         // Shadow test. Is or isn't in shadow
     if (hasDepthData(pTexCoord))
     {
             // Has depth map data
-        if (isInShadow(depthMapTexture, pTexCoord, input.lightViewPos, shadowMapBias))
+        if (!isInShadow(depthMapTexture, pTexCoord, input.lightViewPos, shadowMapBias))
         {
                 //is NOT in shadow, therefore light
             //Remember to invert the direction for direcional light:(
@@ -144,5 +143,5 @@ float4 main(InputType input) : SV_TARGET
     
     //Combine with the texture and return
     //return float4(input.normal.xyz, 1);
-    return float4(lightColour*textureColour);
+    return float4(lightColour * textureColour);
 }

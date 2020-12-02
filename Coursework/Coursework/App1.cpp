@@ -28,6 +28,9 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	depthShader = new DepthShader(renderer->getDevice(), hwnd);
 	textureShader = new TextureShader(renderer->getDevice(), hwnd);
 	grassShader = new GeometryShader(renderer->getDevice(), hwnd);
+	cubeShader = new LightedTextureShader(renderer->getDevice(), hwnd);
+
+
 
 	grassMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 120);
 
@@ -43,23 +46,25 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	amplitude = 20.0f;
 	// Variables for defining shadow map
-	int shadowmapWidth = 1024;
-	int shadowmapHeight = 1024;
+	int shadowmapWidth = 2048;
+	int shadowmapHeight = 2048;
 	int sceneWidth = 300;
-	int sceneHeight = 100;
+	int sceneHeight = 300;
 	//Lights
 	//Create Directional Light.
 	light[0] = new Light;
 	light[0]->setAmbientColour(0.35f, 0.35f, 0.35f, 1.0f);
 	light[0]->setDiffuseColour(1.0f, 1.0f, 1.0f, 1.0f);
-	light[0]->setDirection(0.7f, -0.5f, -1.f);
+	light[0]->setDirection(0.7f, 1.f, 1.f);
 	light[0]->setPosition(0.f, -15.f, 15.f);
-
-
 	light[0]->generateViewMatrix();
+	light[0]->generateOrthoMatrix((float)sceneWidth, (float)sceneHeight, 2.f, 100.f);
+
+
 
 
 	depthmapDirectional = new ShadowMap(renderer->getDevice(), shadowmapWidth, shadowmapHeight);
+	cameraDepthMap = new ShadowMap(renderer->getDevice(), shadowmapWidth, shadowmapHeight);
 	
 	//Default Attenuation Factors
 	//No attenuation for directional light
@@ -70,7 +75,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light[1]->setAmbientColour(0.0f, 0.0f, 0.0f, 1.0f);
 	light[1]->setDiffuseColour(0.0f, 0.0f, 0.0f, 1.0f);
 	light[1]->setPosition(20.0f, 10.0f, 20.0f);
-	light[1]->setDirection(0.f, 0.f, 0.0f);
+	light[1]->setDirection(1.f, 1.f, 1.0f);
 
 	//Default Attenuation Factors
 	light[1]->setAttenuationFactors(XMFLOAT3(1.f, 0.175f, 0.0f));
@@ -80,7 +85,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light[2]->setAmbientColour(0.0f, 0.0f, 0.0f, 1.0f);
 	light[2]->setDiffuseColour(0.0f, .0f,0.0f, 1.0f);
 	light[2]->setPosition(50.0f, 10.0f, 50.0f);
-	light[2]->setDirection(0.f, 0.f, 0.0f);
+	light[2]->setDirection(1.f, 1.f, 1.0f);
 	//Default Attenuation Factors
 	light[2]->setAttenuationFactors(XMFLOAT3(1.f, 0.175f, 0.0f));
 
@@ -95,6 +100,9 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	}
 	
 	smolOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, -screenWidth / 2.7, screenHeight / 2.7);
+	
+
+	
 }
 
 
@@ -128,6 +136,7 @@ bool App1::frame()
 	}
 
 
+
 	return true;
 }
 
@@ -135,7 +144,7 @@ bool App1::render()
 {
 	
 	depthPass();
-
+	cameraDepthPass();
 
 	finalPass();
 
@@ -145,12 +154,10 @@ bool App1::render()
 void App1::depthPass()
 {
 	
-		// Set the render target to be the render to texture.
-	int sceneWidth = 300;
-	int sceneHeight = 100; 
 		depthmapDirectional->BindDsvAndSetNullRenderTarget(renderer->getDeviceContext());
-		
-		light[0]->generateOrthoMatrix((float)sceneWidth, (float)sceneHeight, 20.f, 50.f);
+		 
+		light[0]->generateViewMatrix();
+
 		XMMATRIX lightViewMatrix = light[0]->getViewMatrix();
 		XMMATRIX lightProjectionMatrix = light[0]->getOrthoMatrix();
 
@@ -161,11 +168,11 @@ void App1::depthPass()
 		DepthHeightmapShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix,amplitude,textureMgr->getTexture(L"height"));
 		DepthHeightmapShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
 
-	    XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(50.0f, 15.f, 50.0f);
+	    XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(ballposition[0],ballposition[1],ballposition[2]);
 
 		//Render example cube
 		CubeShadow->sendData(renderer->getDeviceContext());
-		depthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
+		depthShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, lightViewMatrix, lightProjectionMatrix);
 		depthShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
 
 
@@ -190,6 +197,45 @@ void App1::depthPass()
 
 }
 
+void App1::cameraDepthPass()
+{
+    cameraDepthMap->BindDsvAndSetNullRenderTarget(renderer->getDeviceContext());
+
+	XMMATRIX camViewMatrix = camera->getViewMatrix();
+	XMMATRIX camProjectionMatrix = renderer->getProjectionMatrix();
+
+	XMMATRIX worldMatrix = renderer->getWorldMatrix();
+
+	// Render terrain
+	planeMesh->sendData(renderer->getDeviceContext());
+	DepthHeightmapShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, camViewMatrix, camProjectionMatrix, amplitude, textureMgr->getTexture(L"height"));
+	DepthHeightmapShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
+
+	XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(ballposition[0], ballposition[1], ballposition[2]);
+
+	//Render example cube
+	CubeShadow->sendData(renderer->getDeviceContext());
+	depthShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, camViewMatrix, camProjectionMatrix);
+	depthShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
+
+
+	//XMVECTOR direction = XMVectorSet(0.f, 1.f, 0.f, 0.f);
+	//worldMatrix = renderer->getWorldMatrix();
+
+	//XMMATRIX scaleMatrix = XMMatrixScaling(0.5f, 0.5f, 0.5f);
+	//worldMatrix = XMMatrixMultiply(worldMatrix, scaleMatrix);
+	//worldMatrix = XMMatrixTranslation(0.f, 7.f, 5.f);
+	//// Render model
+	//model->sendData(renderer->getDeviceContext());
+	//depthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
+	//depthShader->render(renderer->getDeviceContext(), model->getIndexCount());
+
+	// Set back buffer as render target and reset view port.
+	renderer->setBackBufferRenderTarget();
+	renderer->resetViewport();
+
+}
+
 void App1::finalPass()
 {
 
@@ -210,11 +256,11 @@ void App1::finalPass()
 	projectionMatrix = renderer->getProjectionMatrix();
 
 
-	XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(50.0f, 15.f, 50.0f);
+	XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(ballposition[0], ballposition[1], ballposition[2]);
 
-	//CubeShadow->sendData(renderer->getDeviceContext());
-	//textureShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"));
-	//textureShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
+	CubeShadow->sendData(renderer->getDeviceContext());
+	cubeShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"),depthmapDirectional->getDepthMapSRV(),light);
+	cubeShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
 
 
 	// Send geometry data, set shader parameters, render object with shader
@@ -232,17 +278,17 @@ void App1::finalPass()
 
 	renderer->setAlphaBlending(1);
 	WaterShader->setShaderParameters(renderer->getDeviceContext(), waterWorldMatrix, viewMatrix, projectionMatrix, EdgeTesellation, InsideTesellation, camera->getPosition(),
-		WaveSettings, textureMgr->getTexture(L"height"), WaveDirection, time);
+		WaveSettings, textureMgr->getTexture(L"height"), WaveDirection, time,waterOffset,depthScalar,Sealevel,amplitude);
 	WaterShader->render(renderer->getDeviceContext(), waterPlaneMesh->getIndexCount());
 	renderer->setAlphaBlending(0);
 
 
 
-	//smolOrthoMesh->sendData(renderer->getDeviceContext());
-	//XMMATRIX orthoMatrix = renderer->getOrthoMatrix();
-	//XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();
-	//textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, depthmapDirectional->getDepthMapSRV());
-	//textureShader->render(renderer->getDeviceContext(), smolOrthoMesh->getIndexCount());
+	smolOrthoMesh->sendData(renderer->getDeviceContext());
+	XMMATRIX orthoMatrix = renderer->getOrthoMatrix();
+	XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();
+	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, depthmapDirectional->getDepthMapSRV());
+	textureShader->render(renderer->getDeviceContext(), smolOrthoMesh->getIndexCount());
 
 
 	
@@ -317,6 +363,12 @@ void App1::gui()
 
 	ImGui::SliderFloat3("light position:", position, -50.f, 50.f);
 	light[0]->setPosition(position[0], position[1], position[2]);
+
+	ImGui::SliderFloat3("ball position:", ballposition, -50.f, 50.f);
+
+	ImGui::SliderFloat("Water Depth Scalar", &depthScalar, 0.f, 40.f);
+	ImGui::SliderFloat("Offset Depth", &waterOffset, 0.f, 15.f);
+
 
 
 	// Render UI

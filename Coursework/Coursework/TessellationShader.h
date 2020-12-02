@@ -32,12 +32,21 @@ public:
 
 	};
 
+	struct WaterBufferType
+	{
+		float heightmapAmplitude;
+		float waterPlaneHeight;
+		float offsett;
+		float depthScalar;
+	};
+
+
 	TessellationShader(ID3D11Device* device, HWND hwnd);
 	~TessellationShader();
 
 	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
 		XMFLOAT4 EdgeTesellation, XMFLOAT2 InsideTesellation, XMFLOAT3 CameraPosInput, XMFLOAT4 InputWaveSettings[], ID3D11ShaderResourceView* texture,
-		float direction[], float time);
+		float direction[], float time, float waterOffset, float depthScalar, float Sealevel, float amplitude);
 
 private:
 	void initShader(const wchar_t* vsFilename, const wchar_t* psFilename);
@@ -48,4 +57,6 @@ private:
 	ID3D11Buffer* hullBuffer;
 	ID3D11Buffer* cameraBuffer;
 	ID3D11Buffer* SeaBuffer;
+
+	ID3D11Buffer* WaterBuffer;
 };

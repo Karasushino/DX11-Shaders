@@ -39,6 +39,7 @@ struct OutputType
     float2 tex : TEXCOORD0;
     float3 normal : NORMAL;
     float4 worldPosition : TEXCOORD1;
+
 };
 
 struct WaveCalculations

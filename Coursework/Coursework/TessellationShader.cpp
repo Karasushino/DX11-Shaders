@@ -87,6 +87,20 @@ void TessellationShader::initShader(const wchar_t* vsFilename, const wchar_t* ps
 
 
 	renderer->CreateBuffer(&heightmapBufferDesc, NULL, &SeaBuffer);
+
+
+	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	D3D11_BUFFER_DESC waterBufferDesc;
+	waterBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	waterBufferDesc.ByteWidth = sizeof(WaterBufferType);
+	waterBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	waterBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	waterBufferDesc.MiscFlags = 0;
+	waterBufferDesc.StructureByteStride = 0;
+	
+	renderer->CreateBuffer(&waterBufferDesc, NULL, &WaterBuffer);
+
+
 }
 
 void TessellationShader::initShader(const wchar_t* vsFilename, const wchar_t* hsFilename, const wchar_t* dsFilename, const wchar_t* psFilename)
@@ -102,7 +116,7 @@ void TessellationShader::initShader(const wchar_t* vsFilename, const wchar_t* hs
 
 void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
 	XMFLOAT4 EdgeTesellation, XMFLOAT2 InsideTesellation, XMFLOAT3 CameraPosInput, XMFLOAT4 InputWaveSettings[], ID3D11ShaderResourceView* texture,
-	float InputWaveDirection[], float time)
+	float InputWaveDirection[], float time, float waterOffset,float depthScalar, float Sealevel, float amplitude)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -150,11 +164,29 @@ void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 		heightPtr->WaveDirectionTimePadding[i] = XMFLOAT4(InputWaveDirection[i], time, 1.f, 1.f);
 
 	}
-	
-
 	deviceContext->Unmap(SeaBuffer, 0);
 	deviceContext->DSSetConstantBuffers(1, 1, &SeaBuffer);
+
+	result = deviceContext->Map(WaterBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	WaterBufferType* waterPtr = (WaterBufferType*)mappedResource.pData;
+	waterPtr->depthScalar = depthScalar;
+	waterPtr->heightmapAmplitude = amplitude;
+	waterPtr->offsett = waterOffset;
+	waterPtr->waterPlaneHeight = Sealevel;
+
+	deviceContext->Unmap(WaterBuffer, 0);
+
+
+	
+	
+	
+
+	deviceContext->PSSetConstantBuffers(0, 1, &WaterBuffer);
+
 	deviceContext->PSSetShaderResources(0, 1, &texture);
+
+
+	
 
 
 

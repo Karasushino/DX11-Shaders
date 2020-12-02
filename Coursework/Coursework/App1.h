@@ -11,11 +11,19 @@
 #include "DepthShader.h"
 #include "TextureShader.h"
 #include "GeometryShader.h"
-
+#include "LightedTextureShader.h"
 
 class App1 : public BaseApplication
 {
 public:
+
+	struct WaterBufferType
+	{
+		float heightmapAmplitude;
+		float waterPlaneHeight;
+		float offsett;
+		float depthScalar;
+	};
 
 	App1();
 	~App1();
@@ -27,6 +35,8 @@ protected:
 	bool render();
 	void gui();
 	void depthPass();
+	void cameraDepthPass();
+
 	void finalPass();
 	
 
@@ -37,9 +47,10 @@ private:
 	DepthShaderHeightmap* DepthHeightmapShader;
 	DepthShader* depthShader;
 	GeometryShader* grassShader;
+	LightedTextureShader* cubeShader;
 
 	ShadowMap* depthmapDirectional;
-
+	ShadowMap* cameraDepthMap;
 
 	TextureShader* textureShader;
 
@@ -48,12 +59,13 @@ private:
 	XMFLOAT4 EdgeTesellation;
 	XMFLOAT2 InsideTesellation;
 	float amplitude;
-	float Sealevel;
+
 
 	float position[3];
 
 	Light* light[3];
 
+	float ballposition[3] = { 50.0f, 15.f, 50.0f };
 
 	// x = Peakness;
 	//y = amplitude;
@@ -67,7 +79,7 @@ private:
 	//Time passed
 	float time = 0.f;
 
-	float direction[3] = { 0.f };
+	float direction[3] = { 1.f };
 	float diff[3] = { 0.f };
 
 	QuadPlaneMesh* planeMesh;
@@ -75,6 +87,14 @@ private:
 	PlaneMesh* grassMesh;
 	SphereMesh* CubeShadow;
 	OrthoMesh* smolOrthoMesh;
+
+
+	float waterOffset = 4.3f;
+	float depthScalar = 14.f;
+	float Sealevel = 8.f;
+
+	
+
 
 };
 

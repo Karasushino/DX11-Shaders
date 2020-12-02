@@ -3,7 +3,7 @@
 
 DepthShaderHeightmap::DepthShaderHeightmap(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
-	initShader(L"heightmap_vs.cso", L"heightmap_hs.cso",L"heightmap_ds.cso",L"depth_ps.cso");
+	initShader(L"heightmap_vs.cso", L"heightmap_hs.cso",L"heightmapDepth_ds.cso",L"depth_ps.cso");
 }
 
 DepthShaderHeightmap::~DepthShaderHeightmap()
