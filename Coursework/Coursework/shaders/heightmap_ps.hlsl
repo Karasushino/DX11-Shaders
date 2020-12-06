@@ -157,7 +157,7 @@ float4 main(InputType input) : SV_TARGET
         float distance = length(lightVector);
        
         //"z" corresponds to the pointlight depth map
-        for (int z = 0; i < numberOfPointlights*6; z++)
+        for (int z = 0; z < numberOfPointlights*6; z++)
         {
             //Calculate the view position from the pointlight perspective
             float4 viewPosition = calculateViewMatrix(pointlightProjection[i], pointlightView[z], input);
@@ -179,16 +179,10 @@ float4 main(InputType input) : SV_TARGET
                    // lightColour += calculateAttenuation((float3) attenuation[i + 1], distance);
                    
                 }
- 
             }
-        }
-        
+        }   
     }
-      
-    
-    
-    
-    
+
     //Combine with the texture and return
     //return float4(input.normal.xyz, 1);
     return float4(lightColour*textureColour);

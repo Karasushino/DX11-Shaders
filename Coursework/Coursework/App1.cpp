@@ -66,6 +66,13 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	depthmapDirectional = new ShadowMap(renderer->getDevice(), shadowmapWidth, shadowmapHeight);
 	cameraDepthMap = new ShadowMap(renderer->getDevice(), shadowmapWidth, shadowmapHeight);
 	
+	//Initialize all shadowmaps
+	for (size_t i = 0; i < numberOfPointlights*6; i++)
+	{
+		pointlightShadows[i] = new ShadowMap(renderer->getDevice(), shadowmapWidth, shadowmapHeight);
+	}
+
+
 	//Default Attenuation Factors
 	//No attenuation for directional light
 	// light[0]->setAttenuationFactors(XMFLOAT3(0.f, 0.0f, 0.0f));
@@ -73,7 +80,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	//Create PointLight 1.
 	pointlight[0] = new Light;
 	pointlight[0]->setAmbientColour(0.0f, 0.0f, 0.0f, 1.0f);
-	pointlight[0]->setDiffuseColour(0.0f, 0.0f, 0.0f, 1.0f);
+	pointlight[0]->setDiffuseColour(0.4f, 0.4f, 0.4f, 1.0f);
 	pointlight[0]->setPosition(20.0f, 10.0f, 20.0f);
 	pointlight[0]->setDirection(1.f, 1.f, 1.0f);
 	pointlight[0]->generateProjectionMatrix(2.f, 100.f);
@@ -90,6 +97,8 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	//Default Attenuation Factors
 	pointlight[1]->setAttenuationFactors(XMFLOAT3(1.f, 0.175f, 0.0f));
 
+
+	
 	//Initialize to defaults
 	for (int i = 0; i < 3; i++)
 	{
@@ -171,7 +180,7 @@ bool App1::render()
 	//Depth Passes
 	depthPass();
 	cameraDepthPass();
-
+	pointlightDepthPass();
 	//Render the scene
 	firstPass();
 
@@ -296,6 +305,7 @@ void App1::pointlightDepthPass()
 			
 			// Set the render target to be the render to texture.
 			pointlightShadows[indexPointlight]->BindDsvAndSetNullRenderTarget(renderer->getDeviceContext());
+
 			//Set the directions using array from the header
 			pointlight[i]->setDirection(directions[z].x, directions[z].y, directions[z].z);
 			pointlight[i]->generateViewMatrix();
@@ -397,11 +407,6 @@ void App1::firstPass()
 		textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"));
 	grassShader->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
 	renderer->setNoCullMode(false);*/
-
-
-
-	
-
 
 
 	// Swap the buffers
@@ -630,11 +635,10 @@ void App1::gui()
 
 
 	ImGui::SliderFloat3("light position:", position, -50.f, 50.f);
-	directionalLight->setPosition(position[0], position[1], position[2]);
+	pointlight[0]->setPosition(position[0], position[1], position[2]);
 
 
 	ImGui::SliderFloat3("ball position:", ballposition, -50.f, 50.f);
-
 
 	ImGui::SliderFloat("Water Depth Scalar", &depthScalar, 0.f, 40.f);
 
