@@ -8,8 +8,6 @@ cbuffer MatrixBuffer : register(b0)
     matrix worldMatrix;
     matrix viewMatrix;
     matrix projectionMatrix;
-    matrix lightViewMatrix;
-    matrix lightProjectionMatrix;
 };
 
 cbuffer HeighmapBuffer : register(b1)
@@ -17,6 +15,8 @@ cbuffer HeighmapBuffer : register(b1)
     float amplitude;
     float3 padding;
 };
+
+static const int numberOfPointlights = 1;
 
 struct ConstantOutputType
 {
@@ -37,8 +37,6 @@ struct OutputType
     float2 tex : TEXCOORD0;
     float3 normal : NORMAL;
     float3 worldPosition : TEXCOORD1;
-    float4 lightViewPos : TEXCOORD2;
-    float4 depthPosition : TEXCOORD3;
 
 };
 
@@ -75,10 +73,12 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     /**Source: Introduction to 3D Game Programming with DirectX11 by Frank D.Luna. Page:614-615*/
     //Calculate neighbouring coordinates
     
-    float2 leftC = texturePosition - float2(-1.f / 120.f, 0.0f);
-    float2 rightC = texturePosition - float2(1.f / 120.f, 0.0f);
-    float2 bottomC = texturePosition - float2(0.0f, 1.f / 120.f);
-    float2 topC = texturePosition - float2(0.0f, -1.f / 120.f);
+    float planeSize = 120.f;
+    
+    float2 leftC = texturePosition - float2(-1.f / planeSize, 0.0f);
+    float2 rightC = texturePosition - float2(1.f / planeSize, 0.0f);
+    float2 bottomC = texturePosition - float2(0.0f, 1.f / planeSize);
+    float2 topC = texturePosition - float2(0.0f, -1.f / planeSize);
     
     //Sample neighbouring heightmap Y texture values
     float leftY = heightmapTexture.SampleLevel(displacementSampler, leftC, 0).r;
@@ -91,11 +91,11 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     float3 tangent = normalize(float3(2.0f * (1.0f / 120.0f), (rightY - leftY), 0.0f));
     //Get Directional vector between top and bottom and get tangent.
     float3 bitan = normalize(float3(0.0f, (bottomY- topY), -2.0f * (1.0f / 120.0f)));
-    float3 normal = cross(tangent, bitan);
+    normalPosition = cross(tangent, bitan);
     
 
     
-    normalPosition = normal;
+    //normalPosition = normal;
     
      
     float4 temp = heightmapTexture.SampleLevel(displacementSampler, texturePosition.xy, 0);
@@ -112,10 +112,6 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     output.position = mul(float4(vertexPosition, 1.0f), worldMatrix);
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
-    
-    output.lightViewPos = mul(float4(vertexPosition, 1.0f), worldMatrix);
-    output.lightViewPos = mul(output.lightViewPos, lightViewMatrix);
-    output.lightViewPos = mul(output.lightViewPos, lightProjectionMatrix);
     
     
     output.worldPosition = mul(float4(vertexPosition, 1.0f), worldMatrix).xyz;

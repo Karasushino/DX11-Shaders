@@ -43,6 +43,7 @@ void LightedTextureShader::initShader(const wchar_t* vsFilename, const wchar_t* 
 	loadVertexShader(vsFilename);
 	loadPixelShader(psFilename);
 
+
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
@@ -126,7 +127,7 @@ void LightedTextureShader::setShaderParameters(ID3D11DeviceContext* deviceContex
 	lightPtr = (LightBufferType*)mappedResource.pData;
 	for (int i = 0; i < 3; i++)
 	{
-		lightPtr->ambient[i] = light[i]->getAmbientColour();
+		lightPtr->ambient[i] = XMFLOAT4(1, 1, 0, 1);
 		lightPtr->diffuse[i] = light[i]->getDiffuseColour();
 		lightPtr->position[i] = XMFLOAT4(light[i]->getPosition().x, light[i]->getPosition().y, light[i]->getPosition().z, 0.0f);
 		lightPtr->direction[i] = XMFLOAT4(light[i]->getDirection().x, light[i]->getDirection().y, light[i]->getDirection().z, 0.0f);

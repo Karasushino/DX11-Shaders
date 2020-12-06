@@ -13,6 +13,13 @@
 #include "GeometryShader.h"
 #include "LightedTextureShader.h"
 
+#include "HorizontalBlurShader.h"
+#include "VerticalBlurShader.h"
+
+#include "DepthOfFieldShader.h"
+
+
+
 class App1 : public BaseApplication
 {
 public:
@@ -32,69 +39,187 @@ public:
 	bool frame();
 
 protected:
+	//Main Render function
 	bool render();
-	void gui();
-	void depthPass();
-	void cameraDepthPass();
 
+	//HUD 
+	void gui();
+
+	//Depthpasses
+	void depthPass();
+	//Gets depth map of camera
+	void cameraDepthPass();
+	//Creates the depthmaps of the pointlights 
+	void pointlightDepthPass();
+
+
+	
+	//Render scene to a RenderTexture for Post processing
+	void firstPass();
+
+
+	//Downsample
+	void downsample();
+
+	//Blur scene (for DOP)
+	void horizontalBlur();
+	void verticalBlur();
+	//Do DOP calculations.
+	void depthOfFieldPass();
+
+	//Upsample
+	void upSampleTexture();
+
+	//Render the scene that will be shown to player
 	void finalPass();
 	
 
 private:
+	//Region of Shaders
+	#pragma region Shaders 
+
+	//Tesellated Shaders 
 	TessellationMesh* mesh;
-	HeightmapShader* PlaneShader;
 	TessellationShader* WaterShader;
-	DepthShaderHeightmap* DepthHeightmapShader;
-	DepthShader* depthShader;
+	HeightmapShader* PlaneShader;
+
+	//Geometry Shaders
 	GeometryShader* grassShader;
-	LightedTextureShader* cubeShader;
 
-	ShadowMap* depthmapDirectional;
-	ShadowMap* cameraDepthMap;
+	//Non Tesellated Shaders
+	DepthShaderHeightmap* DepthHeightmapShader; //Shader to only render for depth map generation
+	LightedTextureShader* cubeShader; 
 
+	//Post Processing
+	HorizontalBlurShader* horizontalBlurShader; //Gausian blur horizontal
+	VerticalBlurShader* verticalBlurShader; //Gausian blur vertical
+	DepthOfFieldShader* depthFieldShader; //Depth of field post processing
+
+	//Depth Maps 
+	DepthShader* depthShader;
+	
+
+	//Basic Texture shader.
 	TextureShader* textureShader;
 
+#pragma endregion
 
 
-	XMFLOAT4 EdgeTesellation;
-	XMFLOAT2 InsideTesellation;
-	float amplitude;
-
-
-	float position[3];
-
-	Light* light[3];
-
+	//Position of sphere
 	float ballposition[3] = { 50.0f, 15.f, 50.0f };
 
-	// x = Peakness;
-	//y = amplitude;
-	//z =  frequency;
-	//w = speed;
+	//Parameters to adjust Tessellation manually.
+	XMFLOAT4 TesellationFactor;
+
+	//Amplitude of terrain, height of terrain. Scalar for heightmap data.
+	float amplitude;
+
+	
+	
+
+	/*x = Peakness(How sharp the wave is (not amplitude))
+	  y = amplitude
+	  z = frequency
+	  w = speed*/
 	XMFLOAT4 WaveSettings[3];
 
-	//Angle
+	//Angle of wave (direction)
 	float WaveDirection[3] = { 0.f };
 
 	//Time passed
 	float time = 0.f;
 
-	float direction[3] = { 1.f };
-	float diff[3] = { 0.f };
-
-	QuadPlaneMesh* planeMesh;
-	QuadPlaneMesh* waterPlaneMesh;
-	PlaneMesh* grassMesh;
-	SphereMesh* CubeShadow;
-	OrthoMesh* smolOrthoMesh;
-
-
+	
+	//Settings for Water Color and Level
 	float waterOffset = 4.3f;
 	float depthScalar = 14.f;
 	float Sealevel = 8.f;
 
+	//Region of geometry declarations
+	#pragma region Geometry
+
+	//Planes and geometry of scene.
+	QuadPlaneMesh* planeMesh;
+	QuadPlaneMesh* waterPlaneMesh;
+	PlaneMesh* grassMesh;
+	SphereMesh* CubeShadow;
+
+	#pragma endregion
+
+	//Region of Orthomeshes
+	#pragma region Orthomeshes
+
+	//Debugging ortho mesh
+	OrthoMesh* smolOrthoMesh;
+
+	//Post Processing ortho meshes
+	OrthoMesh* orthoMesh;
+	OrthoMesh* downSampleOrthoMesh;
+
+	#pragma endregion
+
+	/**Post processing
+	Render Textures for Post processing*/
+	#pragma region RenderTextures
+	RenderTexture* renderTexture;
+	RenderTexture* horizontalBlurredSceneTexture;
+	RenderTexture* verticalBlurredSceneTexture;
+
+	RenderTexture* downSampleTexture;
+	RenderTexture* upsampleTexture;
+	RenderTexture* depthOfFieldTexture;
+
+	#pragma endregion
+	/*Settings for the depth of field
+	x = focus distance
+	y = focus range
+	z = near plane
+	w = far plane */
+	XMFLOAT4 DepthFieldSettings;
+
+	//Depth Maps
+	//Orthogonal Depthmap
+	ShadowMap* depthmapDirectional;
+	//Depthmap of the camera
+	ShadowMap* cameraDepthMap;
+
 	
 
+	//All Lighting Related
+	#pragma region Lighting 
+	const static int numberOfPointlights = 1;
+
+	//Position of dir light
+	float position[3];
+
+	//Light data and settings.
+	Light* directionalLight;
+	Light* pointlight[2];
+
+	//Light Directions
+	float direction[3] = { 1.f };
+
+	//Light color diffuse
+	float diff[3] = { 0.f };
+
+	//Store the depth maps in array to pass to GPU shader 
+	ID3D11ShaderResourceView* pointlightDepthTextures[6*numberOfPointlights];
+	//Shadowmap objects for the pointlights
+	ShadowMap* pointlightShadows[6*numberOfPointlights];
+	//View Matrix of Pointlights
+	XMMATRIX pointlightView[6 * numberOfPointlights];
+
+	//Pointlight directions for depthmaping
+	XMFLOAT3 directions[6] = {
+		XMFLOAT3(0,1,0),    // Up
+		XMFLOAT3(0,-1,0),// Down
+		XMFLOAT3(1,0,0),    // Right
+		XMFLOAT3(-1,0,0),    // Left
+		XMFLOAT3(0,0,1),    // Fowards
+		XMFLOAT3(0,0,-1)    // Backwards
+	};
+
+	#pragma endregion
 
 };
 

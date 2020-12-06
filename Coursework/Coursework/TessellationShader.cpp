@@ -169,21 +169,16 @@ void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 
 	result = deviceContext->Map(WaterBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	WaterBufferType* waterPtr = (WaterBufferType*)mappedResource.pData;
-	waterPtr->depthScalar = depthScalar;
+
 	waterPtr->heightmapAmplitude = amplitude;
-	waterPtr->offsett = waterOffset;
 	waterPtr->waterPlaneHeight = Sealevel;
+	waterPtr->offsett = waterOffset;
+	waterPtr->depthScalar = depthScalar;
 
 	deviceContext->Unmap(WaterBuffer, 0);
 
-
-	
-	
-	
-
-	deviceContext->PSSetConstantBuffers(0, 1, &WaterBuffer);
-
-	deviceContext->PSSetShaderResources(0, 1, &texture);
+	deviceContext->PSSetConstantBuffers(1, 1, &WaterBuffer);
+	deviceContext->PSSetShaderResources(1, 1, &texture);
 
 
 	

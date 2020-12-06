@@ -1,15 +1,35 @@
+//#pragma exclude_renderers d3d11_9x
 Texture2D texture0 : register(t0);
 SamplerState Sampler0 : register(s0);
-Texture2D depthMapTexture : register(t1);
+Texture2D directionalDepthMap : register(t1);
 SamplerState shadowSampler : register(s1);
 
-cbuffer LightBuffer : register(b0)
+#define numberOfPointlights 1
+
+Texture2D pointlightDepthMap[numberOfPointlights*6] : register(t2);
+
+
+cbuffer DirectionLightBuffer : register(b0)
 {
-    float4 ambient[3];
-    float4 diffuse[3];
-    float4 position[3];
-    float4 direction[3];
-    float4 attenuation[3];   
+    float4 ambient;
+    float4 dirDiffuse;
+    float4 direction;
+};
+
+cbuffer PointlightBufferType : register(b1)
+{
+    float4 diffuse[numberOfPointlights];
+    float4 position[numberOfPointlights];
+};
+
+cbuffer LightMatrixBufferType : register(b2)
+{
+		//Directional light matrix
+    matrix dirLightView;
+    matrix dirLightProjection;
+		//Pointlight matrix
+    matrix pointlightProjection[numberOfPointlights];
+    matrix pointlightView[numberOfPointlights * 6];
 };
 
 struct InputType
@@ -18,9 +38,18 @@ struct InputType
     float2 tex : TEXCOORD0;
     float3 normal : NORMAL;
     float3 worldPosition : TEXCOORD1;
-    float4 lightViewPos : TEXCOORD2;
+    
 };
 
+float4 calculateViewMatrix(matrix projection, matrix view, InputType input)
+{
+    float4 calculatedMatrix = float4(input.worldPosition,1);
+    // Calculate the position of the vertice as viewed by the light source.
+    calculatedMatrix = mul(calculatedMatrix, view);
+    calculatedMatrix = mul(calculatedMatrix, projection);
+    //Return the matrix as view from the light source
+    return calculatedMatrix;
+}
 
 // Calculate lighting intensity based on direction and normal. Combine with light colour.
 float4 calculateDiffuseLighting(float3 lightDirection, float3 normal, float4 ldiffuse)
@@ -84,24 +113,20 @@ float2 getProjectiveCoords(float4 lightViewPosition)
 float4 main(InputType input) : SV_TARGET
 {
 	//This will be changed to a buffer later on.
-    const int numberOfLights = 3;
     float shadowMapBias = 0.001f;
 
     
-    float distance[numberOfLights - 1];
-    float3 lightVector[numberOfLights - 1];
-    
 	// Sample the texture. Calculate light intensity and colour, return light*texture for final pixel colour.
     float4 textureColour = texture0.Sample(Sampler0, input.tex);
-   
     textureColour = float4(textureColour.xyz, 0.7f);
+    
     //Caluclate the Light vector of all lights
-    for (int z = 0; z < numberOfLights - 1; z++)
-    {
-        lightVector[z] = normalize((float3) position[z + 1] - input.worldPosition);
-        //Calculate Distance between light and Geometry.
-        distance[z] = length(lightVector[z]);
-    }
+    //for (int z = 0; z < numberOfLights - 1; z++)
+    //{
+    //    lightVector[z] = normalize((float3) position[z + 1] - input.worldPosition);
+    //    //Calculate Distance between light and Geometry.
+    //    distance[z] = length(lightVector[z]);
+    //}
     
 
     //Calculate final Light color with Ambient + Diffuse + Attenuation.
@@ -110,7 +135,7 @@ float4 main(InputType input) : SV_TARGET
 	
     /**Calculate ambient only with one light since later on it will be changed as just a single parameter
     independent of lightColour object, ambient should only one after all*/
-    float4 lightColour = ambient[0];
+    float4 lightColour = ambient;
     
     ////Caulculate light
     //for (int i = 0; i < numberOfLights - 1; i++)
@@ -121,23 +146,45 @@ float4 main(InputType input) : SV_TARGET
     //}
     
     
-     
-         // Calculate the projected texture coordinasetes.
-    float2 pTexCoord = getProjectiveCoords(input.lightViewPos);
-    //return float4(pTexCoord.xy, 0, 1);
-        // Shadow test. Is or isn't in shadow
-    if (hasDepthData(pTexCoord))
+     // Calculate the projected texture coordinasetes.
+    //"i" correspond for index of pointlight
+    for (int i = 0; i < numberOfPointlights; i++)
     {
-            // Has depth map data
-        if (isInShadow(depthMapTexture, pTexCoord, input.lightViewPos, shadowMapBias))
+        //Get light vector
+        float3 lightVector = normalize((float3) position[i] - input.worldPosition);
+        
+        //Distance for attenuation calculation = lenght of light vector
+        float distance = length(lightVector);
+       
+        //"z" corresponds to the pointlight depth map
+        for (int z = 0; i < numberOfPointlights*6; z++)
         {
-                //is NOT in shadow, therefore light
-            //Remember to invert the direction for direcional light:(
-            lightColour += calculateDiffuseLighting(-(float3) direction[0], input.normal, diffuse[0]);
-        }
+            //Calculate the view position from the pointlight perspective
+            float4 viewPosition = calculateViewMatrix(pointlightProjection[i], pointlightView[z], input);
+            
+            //Get projective Coords of pointlight view
+            float2 pTexCoord = getProjectiveCoords(viewPosition);
+            
+             // Shadow test. Is or isn't in shadow
+             //Test Lights
+            if (hasDepthData(pTexCoord))
+            {
+            // Has depth map data
+                if (!isInShadow(pointlightDepthMap[z], pTexCoord, viewPosition, shadowMapBias))
+                {
+                    //is NOT in shadow, therefore light
+                
+                    lightColour += calculateDiffuseLighting(lightVector, input.normal, diffuse[i]);
+                    //No attenuation yet, need to pass it to buffer I forgot : (
+                   // lightColour += calculateAttenuation((float3) attenuation[i + 1], distance);
+                   
+                }
  
+            }
+        }
+        
     }
-    //lightColour += calculateDiffuseLighting(-(float3) direction[0], input.normal, diffuse[0]);
+      
     
     
     

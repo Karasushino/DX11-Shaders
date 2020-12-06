@@ -29,13 +29,13 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureShader = new TextureShader(renderer->getDevice(), hwnd);
 	grassShader = new GeometryShader(renderer->getDevice(), hwnd);
 	cubeShader = new LightedTextureShader(renderer->getDevice(), hwnd);
-
+	depthFieldShader = new DepthOfFieldShader(renderer->getDevice(), hwnd);
 
 
 	grassMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 120);
 
-	EdgeTesellation = XMFLOAT4(1.0f, 1.0f, 1.0f,1.0f);
-	InsideTesellation = XMFLOAT2(1.0f, 1.0f);
+	//EdgeTesellation = XMFLOAT4(1.0f, 1.0f, 1.0f,1.0f);
+	//InsideTesellation = XMFLOAT2(1.0f, 1.0f);
 
 	textureMgr->loadTexture(L"WindMap", L"res/WaterDistortion.png");
 	textureMgr->loadTexture(L"brick", L"res/Moss0.jpg");
@@ -48,17 +48,17 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	// Variables for defining shadow map
 	int shadowmapWidth = 2048;
 	int shadowmapHeight = 2048;
-	int sceneWidth = 300;
-	int sceneHeight = 300;
+	int sceneWidth = 1200;
+	int sceneHeight = 675;
 	//Lights
 	//Create Directional Light.
-	light[0] = new Light;
-	light[0]->setAmbientColour(0.35f, 0.35f, 0.35f, 1.0f);
-	light[0]->setDiffuseColour(1.0f, 1.0f, 1.0f, 1.0f);
-	light[0]->setDirection(0.7f, 1.f, 1.f);
-	light[0]->setPosition(0.f, -15.f, 15.f);
-	light[0]->generateViewMatrix();
-	light[0]->generateOrthoMatrix((float)sceneWidth, (float)sceneHeight, 2.f, 100.f);
+	directionalLight = new Light;
+	directionalLight->setAmbientColour(0.35f, 0.35f, 0.35f, 1.0f);
+	directionalLight->setDiffuseColour(1.0f, 1.0f, 1.0f, 1.0f);
+	directionalLight->setDirection(0.7f, 1.f, 1.f);
+	directionalLight->setPosition(0.f, -15.f, 15.f);
+	directionalLight->generateViewMatrix();
+	directionalLight->generateOrthoMatrix((float)sceneWidth, (float)sceneHeight, 2.f, 100.f);
 
 
 
@@ -71,23 +71,24 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	// light[0]->setAttenuationFactors(XMFLOAT3(0.f, 0.0f, 0.0f));
 
 	//Create PointLight 1.
-	light[1] = new Light;
-	light[1]->setAmbientColour(0.0f, 0.0f, 0.0f, 1.0f);
-	light[1]->setDiffuseColour(0.0f, 0.0f, 0.0f, 1.0f);
-	light[1]->setPosition(20.0f, 10.0f, 20.0f);
-	light[1]->setDirection(1.f, 1.f, 1.0f);
-
+	pointlight[0] = new Light;
+	pointlight[0]->setAmbientColour(0.0f, 0.0f, 0.0f, 1.0f);
+	pointlight[0]->setDiffuseColour(0.0f, 0.0f, 0.0f, 1.0f);
+	pointlight[0]->setPosition(20.0f, 10.0f, 20.0f);
+	pointlight[0]->setDirection(1.f, 1.f, 1.0f);
+	pointlight[0]->generateProjectionMatrix(2.f, 100.f);
 	//Default Attenuation Factors
-	light[1]->setAttenuationFactors(XMFLOAT3(1.f, 0.175f, 0.0f));
+	pointlight[0]->setAttenuationFactors(XMFLOAT3(1.f, 0.175f, 0.0f));
 
 	//Create PointLight 2.
-	light[2] = new Light;
-	light[2]->setAmbientColour(0.0f, 0.0f, 0.0f, 1.0f);
-	light[2]->setDiffuseColour(0.0f, .0f,0.0f, 1.0f);
-	light[2]->setPosition(50.0f, 10.0f, 50.0f);
-	light[2]->setDirection(1.f, 1.f, 1.0f);
+	pointlight[1] = new Light;
+	pointlight[1]->setAmbientColour(0.0f, 0.0f, 0.0f, 1.0f);
+	pointlight[1]->setDiffuseColour(0.0f, .0f,0.0f, 1.0f);
+	pointlight[1]->setPosition(50.0f, 10.0f, 50.0f);
+	pointlight[1]->setDirection(1.f, 1.f, 1.0f);
+	pointlight[1]->generateProjectionMatrix(2.f, 100.f);
 	//Default Attenuation Factors
-	light[2]->setAttenuationFactors(XMFLOAT3(1.f, 0.175f, 0.0f));
+	pointlight[1]->setAttenuationFactors(XMFLOAT3(1.f, 0.175f, 0.0f));
 
 	//Initialize to defaults
 	for (int i = 0; i < 3; i++)
@@ -100,9 +101,34 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	}
 	
 	smolOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, -screenWidth / 2.7, screenHeight / 2.7);
-	
+	orthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth, screenHeight);	// Full screen size
+	downSampleOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth/ 1.2f, screenHeight/ 1.2f); //downsample ortho
 
-	
+	//Render Texture
+	renderTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
+
+	//Post processing render textures
+	horizontalBlurredSceneTexture = new RenderTexture(renderer->getDevice(), screenWidth/1.2f, screenHeight/ 1.2f, SCREEN_NEAR, SCREEN_DEPTH);
+	verticalBlurredSceneTexture = new RenderTexture(renderer->getDevice(), screenWidth/ 1.2f, screenHeight/ 1.2f, SCREEN_NEAR, SCREEN_DEPTH);
+	upsampleTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
+	downSampleTexture = new RenderTexture(renderer->getDevice(), screenWidth/ 1.2f, screenHeight/ 1.2f, SCREEN_NEAR, SCREEN_DEPTH);
+	depthOfFieldTexture = new RenderTexture(renderer->getDevice(), screenWidth / 1.2f, screenHeight / 1.2f, SCREEN_NEAR, SCREEN_DEPTH);
+
+	//Post Processing Shaders
+	horizontalBlurShader = new HorizontalBlurShader(renderer->getDevice(), hwnd);
+	verticalBlurShader = new VerticalBlurShader(renderer->getDevice(), hwnd);
+	depthFieldShader = new DepthOfFieldShader(renderer->getDevice(), hwnd);
+
+
+	//Depth of Field parameters
+	//Distance Focus
+	DepthFieldSettings.x = 5.f;
+	//Focus Range
+	DepthFieldSettings.y = 10.f;
+	//Close plane
+	DepthFieldSettings.z = 0.1f;
+	//Far plane
+	DepthFieldSettings.w = 100.f;
 }
 
 
@@ -142,11 +168,30 @@ bool App1::frame()
 
 bool App1::render()
 {
-	
+	//Depth Passes
 	depthPass();
 	cameraDepthPass();
 
+	//Render the scene
+	firstPass();
+
+
+	//Post Processing
+	downsample();
+
+	//Render scene to texture
+	horizontalBlur();
+	verticalBlur();
+	depthOfFieldPass();
+
+	//Upsample all post processing
+	upSampleTexture();
+
+	//Render the scene for the user
 	finalPass();
+
+	
+
 
 	return true;
 }
@@ -156,10 +201,10 @@ void App1::depthPass()
 	
 		depthmapDirectional->BindDsvAndSetNullRenderTarget(renderer->getDeviceContext());
 		 
-		light[0]->generateViewMatrix();
+		directionalLight->generateViewMatrix();
 
-		XMMATRIX lightViewMatrix = light[0]->getViewMatrix();
-		XMMATRIX lightProjectionMatrix = light[0]->getOrthoMatrix();
+		XMMATRIX lightViewMatrix = directionalLight->getViewMatrix();
+		XMMATRIX lightProjectionMatrix = directionalLight->getOrthoMatrix();
 
 		XMMATRIX worldMatrix = renderer->getWorldMatrix();
 
@@ -196,6 +241,8 @@ void App1::depthPass()
 
 
 }
+
+
 
 void App1::cameraDepthPass()
 {
@@ -236,13 +283,70 @@ void App1::cameraDepthPass()
 
 }
 
-void App1::finalPass()
+void App1::pointlightDepthPass()
+{
+	int indexPointlight = 0;
+
+	//Loop for number of pointlights
+	for (size_t i = 0; i < numberOfPointlights; i++)
+	{
+		//Loop for 6 directions
+		for (int z = 0; z < 6; z++)
+		{
+			
+			// Set the render target to be the render to texture.
+			pointlightShadows[indexPointlight]->BindDsvAndSetNullRenderTarget(renderer->getDeviceContext());
+			//Set the directions using array from the header
+			pointlight[i]->setDirection(directions[z].x, directions[z].y, directions[z].z);
+			pointlight[i]->generateViewMatrix();
+
+			XMMATRIX lightViewMatrix = pointlight[i]->getViewMatrix();
+
+			//Store the view on array to pass to GPU
+			pointlightView[indexPointlight] = lightViewMatrix;
+			//Should be the same for every different light
+			XMMATRIX lightProjectionMatrix = pointlight[i]->getProjectionMatrix();
+
+			XMMATRIX worldMatrix = renderer->getWorldMatrix();
+			worldMatrix = XMMatrixTranslation(-50.f, 0.f, -10.f);
+			//Render terrain for Depth map
+			planeMesh->sendData(renderer->getDeviceContext());
+			DepthHeightmapShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, amplitude, textureMgr->getTexture(L"height"));
+			DepthHeightmapShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
+
+			//Move the geometry
+			XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(ballposition[0], ballposition[1], ballposition[2]);
+
+			//Render example sphere
+			CubeShadow->sendData(renderer->getDeviceContext());
+			depthShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, lightViewMatrix, lightProjectionMatrix);
+			depthShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
+			
+
+			// Set back buffer as render target and reset view port.
+			renderer->setBackBufferRenderTarget();
+			renderer->resetViewport();
+
+			//Store generated depth map on array
+			pointlightDepthTextures[indexPointlight] = pointlightShadows[indexPointlight]->getDepthMapSRV();
+
+			//Increment index to set next array index
+			indexPointlight++;
+		}
+	}
+}
+
+void App1::firstPass()
 {
 
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix;
 
 	// Clear the scene. (default blue colour)
-	renderer->beginScene(0.39f, 0.58f, 0.92f, 1.0f);
+	//renderer->beginScene(0.39f, 0.58f, 0.92f, 1.0f);
+
+	// Set the render target to be the render to texture and clear it
+	renderTexture->setRenderTarget(renderer->getDeviceContext());
+	renderTexture->clearRenderTarget(renderer->getDeviceContext(), 0.0f, 0.0f, 1.0f, 1.0f);
 
 	// Generate the view matrix based on the camera's position.
 	camera->update();
@@ -256,32 +360,22 @@ void App1::finalPass()
 	projectionMatrix = renderer->getProjectionMatrix();
 
 
-	XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(ballposition[0], ballposition[1], ballposition[2]);
-
-	CubeShadow->sendData(renderer->getDeviceContext());
-	cubeShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"),depthmapDirectional->getDepthMapSRV(),light);
-	cubeShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
-
-
+	
 	// Send geometry data, set shader parameters, render object with shader
 	planeMesh->sendData(renderer->getDeviceContext());
-	PlaneShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, EdgeTesellation, InsideTesellation, textureMgr->getTexture(L"brick"), camera->getPosition(),
-		amplitude, textureMgr->getTexture(L"height"), light, depthmapDirectional->getDepthMapSRV());
+	PlaneShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,TesellationFactor, textureMgr->getTexture(L"brick"), camera->getPosition(),
+		amplitude, textureMgr->getTexture(L"height"), directionalLight, pointlight, depthmapDirectional->getDepthMapSRV(), pointlightDepthTextures,pointlightView);
 	
 	PlaneShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
 
-	
 
-
-	XMMATRIX waterWorldMatrix = worldMatrix * XMMatrixTranslation(0.0f, Sealevel, 0.0f);
+	/*XMMATRIX waterWorldMatrix = worldMatrix * XMMatrixTranslation(0.0f, Sealevel, 0.0f);
 	waterPlaneMesh->sendData(renderer->getDeviceContext());
-
 	renderer->setAlphaBlending(1);
-	WaterShader->setShaderParameters(renderer->getDeviceContext(), waterWorldMatrix, viewMatrix, projectionMatrix, EdgeTesellation, InsideTesellation, camera->getPosition(),
-		WaveSettings, textureMgr->getTexture(L"height"), WaveDirection, time,waterOffset,depthScalar,Sealevel,amplitude);
+	WaterShader->setShaderParameters(renderer->getDeviceContext(), waterWorldMatrix, viewMatrix, projectionMatrix, TesellationFactor, TesellationFactor, camera->getPosition(),
+		WaveSettings, textureMgr->getTexture(L"height"), WaveDirection, time, waterOffset,depthScalar,Sealevel,amplitude);
 	WaterShader->render(renderer->getDeviceContext(), waterPlaneMesh->getIndexCount());
-	renderer->setAlphaBlending(0);
-
+	renderer->setAlphaBlending(0);*/
 
 
 	smolOrthoMesh->sendData(renderer->getDeviceContext());
@@ -290,20 +384,30 @@ void App1::finalPass()
 	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, depthmapDirectional->getDepthMapSRV());
 	textureShader->render(renderer->getDeviceContext(), smolOrthoMesh->getIndexCount());
 
+	
+	/*XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(ballposition[0], ballposition[1], ballposition[2]);
+	CubeShadow->sendData(renderer->getDeviceContext());
+	cubeShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"), depthmapDirectional->getDepthMapSRV(), light);
+	cubeShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());*/
 
 	
-	renderer->setNoCullMode(true);
+	/*renderer->setNoCullMode(true);
 	grassMesh->sendData(renderer->getDeviceContext(), D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 	grassShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"WindMap"), time, textureMgr->getTexture(L"height"),
 		textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"));
 	grassShader->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
-	renderer->setNoCullMode(false);
+	renderer->setNoCullMode(false);*/
 
-	// Render GUI
-	gui();
+
+
+	
+
+
 
 	// Swap the buffers
-	renderer->endScene();
+	renderer->setBackBufferRenderTarget();
+
+	//renderer->endScene();
 
 
 	
@@ -311,6 +415,170 @@ void App1::finalPass()
 	//return true;
 }
 
+void App1::downsample()
+{
+	XMMATRIX worldMatrix, baseViewMatrix, orthoMatrix;
+
+
+	downSampleTexture->setRenderTarget(renderer->getDeviceContext());
+	downSampleTexture->clearRenderTarget(renderer->getDeviceContext(), 1.0f, 1.0f, 1.0f, 1.0f);
+
+	//Don't clear, overwrite the horizontal blured one.
+	//blurredScene->clearRenderTarget(renderer->getDeviceContext(), 0.0f, 1.0f, 1.0f, 1.0f);
+
+	worldMatrix = renderer->getWorldMatrix();
+	baseViewMatrix = camera->getOrthoViewMatrix();
+	// Get the ortho matrix from the render to texture since texture has different dimensions being that it is smaller.
+	orthoMatrix = downSampleTexture->getOrthoMatrix();
+
+	// Render for Vertical Blur
+	renderer->setZBuffer(false);
+	downSampleOrthoMesh->sendData(renderer->getDeviceContext());
+	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, renderTexture->getShaderResourceView());
+	textureShader->render(renderer->getDeviceContext(), downSampleOrthoMesh->getIndexCount());
+	renderer->setZBuffer(true);
+	//verticalBlurredSceneTexture->clearRenderTarget(renderer->getDeviceContext(), 1.0f, 0.0f, 0.0f, 1.0f);
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	renderer->setBackBufferRenderTarget();
+
+}
+
+void App1::horizontalBlur()
+{
+	XMMATRIX worldMatrix, baseViewMatrix, orthoMatrix;
+
+
+	horizontalBlurredSceneTexture->setRenderTarget(renderer->getDeviceContext());
+	horizontalBlurredSceneTexture->clearRenderTarget(renderer->getDeviceContext(), 0.0f, 1.0f, 1.0f, 1.0f);
+
+	XMFLOAT2 screenSize = XMFLOAT2(horizontalBlurredSceneTexture->getTextureWidth(), horizontalBlurredSceneTexture->getTextureHeight());
+
+
+
+	worldMatrix = renderer->getWorldMatrix();
+	baseViewMatrix = camera->getOrthoViewMatrix();
+	// Get the ortho matrix from the render to texture since texture has different dimensions being that it is smaller.
+	orthoMatrix = horizontalBlurredSceneTexture->getOrthoMatrix();
+
+	// Render for Vertical Blur
+	renderer->setZBuffer(false);
+	downSampleOrthoMesh->sendData(renderer->getDeviceContext());
+	horizontalBlurShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, downSampleTexture->getShaderResourceView(), screenSize.x/4);
+	horizontalBlurShader->render(renderer->getDeviceContext(), downSampleOrthoMesh->getIndexCount());
+	renderer->setZBuffer(true);
+
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	renderer->setBackBufferRenderTarget();
+}
+
+void App1::verticalBlur()
+{
+	XMMATRIX worldMatrix, baseViewMatrix, orthoMatrix;
+
+	XMFLOAT2 screenSize = XMFLOAT2(verticalBlurredSceneTexture->getTextureWidth(), verticalBlurredSceneTexture->getTextureHeight());
+
+	verticalBlurredSceneTexture->setRenderTarget(renderer->getDeviceContext());
+	verticalBlurredSceneTexture->clearRenderTarget(renderer->getDeviceContext(), 1.0f, 1.0f, 1.0f, 1.0f);
+
+	//Don't clear, overwrite the horizontal blured one.
+	//blurredScene->clearRenderTarget(renderer->getDeviceContext(), 0.0f, 1.0f, 1.0f, 1.0f);
+
+	worldMatrix = renderer->getWorldMatrix();
+	baseViewMatrix = camera->getOrthoViewMatrix();
+	// Get the ortho matrix from the render to texture since texture has different dimensions being that it is smaller.
+	orthoMatrix = verticalBlurredSceneTexture->getOrthoMatrix();
+
+	// Render for Vertical Blur
+	renderer->setZBuffer(false);
+	downSampleOrthoMesh->sendData(renderer->getDeviceContext());
+	verticalBlurShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, horizontalBlurredSceneTexture->getShaderResourceView(), screenSize.y/4);
+	verticalBlurShader->render(renderer->getDeviceContext(), downSampleOrthoMesh->getIndexCount());
+	renderer->setZBuffer(true);
+	//verticalBlurredSceneTexture->clearRenderTarget(renderer->getDeviceContext(), 1.0f, 0.0f, 0.0f, 1.0f);
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	renderer->setBackBufferRenderTarget();
+}
+
+void App1::depthOfFieldPass()
+{
+	XMMATRIX worldMatrix, baseViewMatrix, orthoMatrix;
+
+	XMFLOAT2 screenSize = XMFLOAT2(depthOfFieldTexture->getTextureWidth(), depthOfFieldTexture->getTextureHeight());
+
+	depthOfFieldTexture->setRenderTarget(renderer->getDeviceContext());
+	depthOfFieldTexture->clearRenderTarget(renderer->getDeviceContext(), 1.0f, 1.0f, 1.0f, 1.0f);
+
+	//Don't clear, overwrite the horizontal blured one.
+	//blurredScene->clearRenderTarget(renderer->getDeviceContext(), 0.0f, 1.0f, 1.0f, 1.0f);
+
+	worldMatrix = renderer->getWorldMatrix();
+	baseViewMatrix = camera->getOrthoViewMatrix();
+	// Get the ortho matrix from the render to texture since texture has different dimensions being that it is smaller.
+	orthoMatrix = depthOfFieldTexture->getOrthoMatrix();
+
+	// Render for Vertical Blur
+	renderer->setZBuffer(false);
+	downSampleOrthoMesh->sendData(renderer->getDeviceContext());
+	depthFieldShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, downSampleTexture->getShaderResourceView(),
+		verticalBlurredSceneTexture->getShaderResourceView(),cameraDepthMap->getDepthMapSRV(),DepthFieldSettings);
+	depthFieldShader->render(renderer->getDeviceContext(), downSampleOrthoMesh->getIndexCount());
+	renderer->setZBuffer(true);
+	//verticalBlurredSceneTexture->clearRenderTarget(renderer->getDeviceContext(), 1.0f, 0.0f, 0.0f, 1.0f);
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	renderer->setBackBufferRenderTarget();
+}
+
+void App1::upSampleTexture()
+{
+
+	XMMATRIX worldMatrix, baseViewMatrix, orthoMatrix;
+
+
+	upsampleTexture->setRenderTarget(renderer->getDeviceContext());
+	upsampleTexture->clearRenderTarget(renderer->getDeviceContext(), 1.0f, 1.0f, 1.0f, 1.0f);
+
+	//Don't clear, overwrite the horizontal blured one.
+	//blurredScene->clearRenderTarget(renderer->getDeviceContext(), 0.0f, 1.0f, 1.0f, 1.0f);
+
+	worldMatrix = renderer->getWorldMatrix();
+	baseViewMatrix = camera->getOrthoViewMatrix();
+	// Get the ortho matrix from the render to texture since texture has different dimensions being that it is smaller.
+	orthoMatrix = upsampleTexture->getOrthoMatrix();
+
+	// Render for Vertical Blur
+	renderer->setZBuffer(false);
+	orthoMesh->sendData(renderer->getDeviceContext());
+	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, depthOfFieldTexture->getShaderResourceView());
+	textureShader->render(renderer->getDeviceContext(), orthoMesh->getIndexCount());
+	renderer->setZBuffer(true);
+	
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	renderer->setBackBufferRenderTarget();
+
+}
+
+void App1::finalPass()
+{
+	
+	// Clear the scene. (default blue colour)
+	renderer->beginScene(0.39f, 0.58f, 0.92f, 1.0f);
+
+	// RENDER THE RENDER TEXTURE SCENE
+	// Requires 2D rendering and an ortho mesh.
+	renderer->setZBuffer(false);
+	XMMATRIX worldMatrix = renderer->getWorldMatrix();
+	XMMATRIX orthoMatrix = renderer->getOrthoMatrix();  // ortho matrix for 2D rendering
+	XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix(); // Default camera position for orthographic rendering
+	orthoMesh->sendData(renderer->getDeviceContext()); 
+	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, upsampleTexture->getShaderResourceView());
+	textureShader->render(renderer->getDeviceContext(), orthoMesh->getIndexCount());
+	renderer->setZBuffer(true);
+
+	// Render GUI
+	gui();
+	// Present the rendered scene to the screen.
+	renderer->endScene();
+}
 
 void App1::gui()
 {
@@ -321,9 +589,9 @@ void App1::gui()
 
 	// Build UI
 	ImGui::Text("FPS: %.2f", timer->getFPS());
-	ImGui::Text("FPS: %.2f", time);
+	ImGui::Text("Time elapsed: %.2f", time);
 	ImGui::Checkbox("Wireframe mode", &wireframeToggle);
-	ImGui::SliderFloat("Tesellation Scalar", &EdgeTesellation.x, 1.0f, 20.0f);
+	ImGui::SliderFloat("Tesellation Scalar", &TesellationFactor.x, 1.0f, 20.0f);
 	ImGui::SliderFloat("Amplitude Heightmap", &amplitude, 1.0f, 100.0f);
 
 	ImGui::SliderFloat("Wave Amplitude", &WaveSettings[0].y, 1.0f, 20.0f);
@@ -355,21 +623,28 @@ void App1::gui()
 
 
 	ImGui::SliderFloat3("PEpega light thing:", direction, -1.f, 1.f);
-	light[0]->setDirection(direction[0], direction[1], direction[2]);
+	directionalLight->setDirection(direction[0], direction[1], direction[2]);
 
 	ImGui::SliderFloat("PEpega light c", &diff[0], 0.f, 100.f);
-	light[0]->setDiffuseColour(diff[0], diff[0], diff[0],1.f);
+	directionalLight->setDiffuseColour(diff[0], diff[0], diff[0], 1.f);
 
 
 	ImGui::SliderFloat3("light position:", position, -50.f, 50.f);
-	light[0]->setPosition(position[0], position[1], position[2]);
+	directionalLight->setPosition(position[0], position[1], position[2]);
+
 
 	ImGui::SliderFloat3("ball position:", ballposition, -50.f, 50.f);
 
+
 	ImGui::SliderFloat("Water Depth Scalar", &depthScalar, 0.f, 40.f);
+
 	ImGui::SliderFloat("Offset Depth", &waterOffset, 0.f, 15.f);
 
 
+	ImGui::SliderFloat("Distance Focus", &DepthFieldSettings.x, 0.f, 15.f);
+	ImGui::SliderFloat("Focus Range", &DepthFieldSettings.y, 0.f, 15.f);
+	ImGui::SliderFloat("Close plane", &DepthFieldSettings.z, 0.f, 15.f);
+	ImGui::SliderFloat("Far plane", &DepthFieldSettings.w, 1.f, 150.f);
 
 	// Render UI
 	ImGui::Render();

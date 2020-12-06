@@ -77,7 +77,12 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
     
+    //Output the position without any matrix transf for shadow calculations
     output.depthPosition = output.position;
+    
+    
+    
+    
 
     return output;
 }   

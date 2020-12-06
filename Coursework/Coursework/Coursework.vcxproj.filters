@@ -28,6 +28,15 @@
     <Filter Include="Resource Files\Water Shaders">
       <UniqueIdentifier>{bc861742-f3dd-4e34-aa28-99a69fe63d84}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Postprocessing Shaders">
+      <UniqueIdentifier>{d8f9a656-66e5-469c-8fce-386cc25bc4d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Post Processing Headers">
+      <UniqueIdentifier>{50126250-a49c-44f7-9a9d-b515f198fd05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Post Processing cpp">
+      <UniqueIdentifier>{10ebc88e-91e0-4b10-8973-eaaaa2f9c165}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App1.cpp">
@@ -60,6 +69,15 @@
     <ClCompile Include="LightedTextureShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HorizontalBlurShader.cpp">
+      <Filter>Source Files\Post Processing cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="VerticalBlurShader.cpp">
+      <Filter>Source Files\Post Processing cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthOfFieldShader.cpp">
+      <Filter>Source Files\Post Processing cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App1.h">
@@ -87,6 +105,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LightedTextureShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HorizontalBlurShader.h">
+      <Filter>Header Files\Post Processing Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="VerticalBlurShader.h">
+      <Filter>Header Files\Post Processing Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthOfFieldShader.h">
+      <Filter>Header Files\Post Processing Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -156,6 +186,24 @@
     </FxCompile>
     <FxCompile Include="shaders\texture_vs.hlsl">
       <Filter>Resource Files\Base Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\horizontalBlur_ps.hlsl">
+      <Filter>Resource Files\Postprocessing Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\horizontalBlur_vs.hlsl">
+      <Filter>Resource Files\Postprocessing Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\verticalBlur_ps.hlsl">
+      <Filter>Resource Files\Postprocessing Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\verticalBlur_vs.hlsl">
+      <Filter>Resource Files\Postprocessing Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="depthOfField_vs.hlsl">
+      <Filter>Resource Files\Postprocessing Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="depthOfField_ps.hlsl">
+      <Filter>Resource Files\Postprocessing Shaders</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

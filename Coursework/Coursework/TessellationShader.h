@@ -29,7 +29,6 @@ public:
 	{
 		XMFLOAT4 WaveSettings[3];
 		XMFLOAT4 WaveDirectionTimePadding[3];
-
 	};
 
 	struct WaterBufferType

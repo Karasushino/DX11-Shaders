@@ -130,16 +130,13 @@ float4 main(InputType input) : SV_TARGET
             // Has depth map data
         if (!isInShadow(depthMapTexture, pTexCoord, input.lightViewPos, shadowMapBias))
         {
-                //is NOT in shadow, therefore light
+            //is NOT in shadow, therefore light
             //Remember to invert the direction for direcional light:(
             lightColour += calculateDiffuseLighting(-(float3) direction[0], input.normal, diffuse[0]);
         }
  
     }
-    //lightColour += calculateDiffuseLighting(-(float3) direction[0], input.normal, diffuse[0]);
-    
-    
-    
+   
     
     //Combine with the texture and return
     //return float4(input.normal.xyz, 1);
