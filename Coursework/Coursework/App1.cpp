@@ -39,7 +39,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	textureMgr->loadTexture(L"WindMap", L"res/WaterDistortion.png");
 	textureMgr->loadTexture(L"brick", L"res/Moss0.jpg");
-	textureMgr->loadTexture(L"height", L"res/heightmap.jpg");
+	textureMgr->loadTexture(L"height", L"res/height.jpg");
 	textureMgr->loadTexture(L"water", L"res/water.jpg");
 	textureMgr->loadTexture(L"Noise", L"res/noise.jpg");
 	textureMgr->loadTexture(L"GrassSpawn", L"res/grassNoise.jpg");
@@ -48,8 +48,8 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	// Variables for defining shadow map
 	int shadowmapWidth = 2048;
 	int shadowmapHeight = 2048;
-	int sceneWidth = 1200;
-	int sceneHeight = 675;
+	int sceneWidth = 200;
+	int sceneHeight = 200;
 	//Lights
 	//Create Directional Light.
 	directionalLight = new Light;
@@ -199,8 +199,6 @@ bool App1::render()
 	//Render the scene for the user
 	finalPass();
 
-	
-
 
 	return true;
 }
@@ -230,23 +228,9 @@ void App1::depthPass()
 		depthShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
 
 
-		//XMVECTOR direction = XMVectorSet(0.f, 1.f, 0.f, 0.f);
-		//worldMatrix = renderer->getWorldMatrix();
-
-		//XMMATRIX scaleMatrix = XMMatrixScaling(0.5f, 0.5f, 0.5f);
-		//worldMatrix = XMMatrixMultiply(worldMatrix, scaleMatrix);
-		//worldMatrix = XMMatrixTranslation(0.f, 7.f, 5.f);
-		//// Render model
-		//model->sendData(renderer->getDeviceContext());
-		//depthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
-		//depthShader->render(renderer->getDeviceContext(), model->getIndexCount());
-
 		// Set back buffer as render target and reset view port.
 		renderer->setBackBufferRenderTarget();
 		renderer->resetViewport();
-
-	
-
 
 
 }
@@ -379,13 +363,14 @@ void App1::firstPass()
 	PlaneShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
 
 
-	/*XMMATRIX waterWorldMatrix = worldMatrix * XMMatrixTranslation(0.0f, Sealevel, 0.0f);
+	XMMATRIX waterWorldMatrix = worldMatrix * XMMatrixTranslation(0.0f, Sealevel, 0.0f);
 	waterPlaneMesh->sendData(renderer->getDeviceContext());
 	renderer->setAlphaBlending(1);
-	WaterShader->setShaderParameters(renderer->getDeviceContext(), waterWorldMatrix, viewMatrix, projectionMatrix, TesellationFactor, TesellationFactor, camera->getPosition(),
+	XMFLOAT2 tes = XMFLOAT2(TesellationFactor.x,TesellationFactor.y);
+	WaterShader->setShaderParameters(renderer->getDeviceContext(), waterWorldMatrix, viewMatrix, projectionMatrix, TesellationFactor, tes, camera->getPosition(),
 		WaveSettings, textureMgr->getTexture(L"height"), WaveDirection, time, waterOffset,depthScalar,Sealevel,amplitude);
 	WaterShader->render(renderer->getDeviceContext(), waterPlaneMesh->getIndexCount());
-	renderer->setAlphaBlending(0);*/
+	renderer->setAlphaBlending(0);
 
 
 	smolOrthoMesh->sendData(renderer->getDeviceContext());
@@ -627,10 +612,10 @@ void App1::gui()
 	ImGui::SliderFloat("Sea Level: ", &Sealevel, -10.0f, 10.0f);
 
 
-	ImGui::SliderFloat3("PEpega light thing:", direction, -1.f, 1.f);
+	ImGui::SliderFloat3("Directional light Direction:", direction, -1.f, 1.f);
 	directionalLight->setDirection(direction[0], direction[1], direction[2]);
 
-	ImGui::SliderFloat("PEpega light c", &diff[0], 0.f, 100.f);
+	ImGui::SliderFloat("Directional light intensity", &diff[0], 0.f, 100.f);
 	directionalLight->setDiffuseColour(diff[0], diff[0], diff[0], 1.f);
 
 
@@ -638,7 +623,7 @@ void App1::gui()
 	pointlight[0]->setPosition(position[0], position[1], position[2]);
 
 
-	ImGui::SliderFloat3("ball position:", ballposition, -50.f, 50.f);
+	ImGui::SliderFloat3("Ball position:", ballposition, -50.f, 50.f);
 
 	ImGui::SliderFloat("Water Depth Scalar", &depthScalar, 0.f, 40.f);
 

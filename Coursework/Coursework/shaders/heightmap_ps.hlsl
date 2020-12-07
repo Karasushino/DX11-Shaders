@@ -109,43 +109,10 @@ float2 getProjectiveCoords(float4 lightViewPosition)
     return projTex;
 }
 
-
-float4 main(InputType input) : SV_TARGET
+//Returns the corresponding pixel color, with shadows (not working)
+float4 getPointlightContribution(float shadowMapBias, InputType input)
 {
-	//This will be changed to a buffer later on.
-    float shadowMapBias = 0.001f;
-
-    
-	// Sample the texture. Calculate light intensity and colour, return light*texture for final pixel colour.
-    float4 textureColour = texture0.Sample(Sampler0, input.tex);
-    textureColour = float4(textureColour.xyz, 0.7f);
-    
-    //Caluclate the Light vector of all lights
-    //for (int z = 0; z < numberOfLights - 1; z++)
-    //{
-    //    lightVector[z] = normalize((float3) position[z + 1] - input.worldPosition);
-    //    //Calculate Distance between light and Geometry.
-    //    distance[z] = length(lightVector[z]);
-    //}
-    
-
-    //Calculate final Light color with Ambient + Diffuse + Attenuation.
-    //float4 lightColour = ambient + (calculateDiffuseLighting(lightVector, input.normal, diffuse) + 
-    //calculateAttenuation(constantFactor,linearFactor,quadraticFactor,distance));
-	
-    /**Calculate ambient only with one light since later on it will be changed as just a single parameter
-    independent of lightColour object, ambient should only one after all*/
-    float4 lightColour = ambient;
-    
-    ////Caulculate light
-    //for (int i = 0; i < numberOfLights - 1; i++)
-    //{
-    //    //Calcuate light
-    //    lightColour += calculateDiffuseLighting(lightVector[i], input.normal, diffuse[i + 1]);
-    //    lightColour += calculateAttenuation((float3) attenuation[i + 1], distance[i]);
-    //}
-    
-    
+    float4 lightColour = 0.f;
      // Calculate the projected texture coordinasetes.
     //"i" correspond for index of pointlight
     for (int i = 0; i < numberOfPointlights; i++)
@@ -157,7 +124,7 @@ float4 main(InputType input) : SV_TARGET
         float distance = length(lightVector);
        
         //"z" corresponds to the pointlight depth map
-        for (int z = 0; z < numberOfPointlights*6; z++)
+        for (int z = 0; z < numberOfPointlights * 6; z++)
         {
             //Calculate the view position from the pointlight perspective
             float4 viewPosition = calculateViewMatrix(pointlightProjection[i], pointlightView[z], input);
@@ -179,11 +146,90 @@ float4 main(InputType input) : SV_TARGET
                    // lightColour += calculateAttenuation((float3) attenuation[i + 1], distance);
                    
                 }
+                else
+                    lightColour = float4(1, 0, 0, 1);
             }
-        }   
+            //else
+               // return float4(1, 0, 1, 1);
+        }
+        
     }
+    return lightColour;
+}
+
+float4 getDirectionalLightContribution(float shadowMapBias, InputType input)
+{
+    float4 color = 0.f;
+    float4 viewMatrix = calculateViewMatrix(dirLightProjection, dirLightView, input);
+     // Calculate the projected texture coordinates.
+    float2 pTexCoord = getProjectiveCoords(viewMatrix);
+    //return float4(pTexCoord.xy, 0, 1);
+        // Shadow test. Is or isn't in shadow
+    if (hasDepthData(pTexCoord))
+    {
+            // Has depth map data
+        if (!isInShadow(directionalDepthMap, pTexCoord, viewMatrix, shadowMapBias))
+        {
+                //is NOT in shadow, therefore light
+            color += calculateDiffuseLighting(-direction.xyz, input.normal, dirDiffuse);
+           
+
+        }
+        else
+            color = float4(1, 0, 0, 1);
+    }
+    else
+        return float4(1, 0, 1, 1);
+    
+    
+    return color;
+}
+
+float4 main(InputType input) : SV_TARGET
+{
+	//This will be changed to a buffer later on.
+    float shadowMapBias = 0.001f;
+
+    
+	// Sample the color of the pixel based on sampled texture.
+    float4 textureColor = texture0.Sample(Sampler0, input.tex);
+    //textureColor = float4(textureColor.xyz, 0.7f);
+    
+   
+    //Caluclate the Light vector of all lights
+    //for (int z = 0; z < numberOfLights - 1; z++)
+    //{
+    //    lightVector[z] = normalize((float3) position[z + 1] - input.worldPosition);
+    //    //Calculate Distance between light and Geometry.
+    //    distance[z] = length(lightVector[z]);
+    //}
+    
+    //Calculate final Light color with Ambient + Diffuse + Attenuation.
+    //float4 lightColour = ambient + (calculateDiffuseLighting(lightVector, input.normal, diffuse) + 
+    //calculateAttenuation(constantFactor,linearFactor,quadraticFactor,distance));
+	
+    /**Calculate ambient only with one light since later on it will be changed as just a single parameter
+    independent of lightColour object, ambient should only one after all*/
+    float4 lightColor = ambient;
+    
+    ////Caulculate light
+    //for (int i = 0; i < numberOfLights - 1; i++)
+    //{
+    //    //Calcuate light
+    //    lightColour += calculateDiffuseLighting(lightVector[i], input.normal, diffuse[i + 1]);
+    //    lightColour += calculateAttenuation((float3) attenuation[i + 1], distance[i]);
+    //}
+    
+    //Calculate light contribution of directional light and aditivelly blend.
+    //lightColor = getDirectionalLightContribution(shadowMapBias, input);
+    
+    
+    //Calculate light contribution of pointlights and aditivelly blend.
+    lightColor += getPointlightContribution(shadowMapBias,input);
+    
+    //return float4(input.normal.xyz, 1);
 
     //Combine with the texture and return
     //return float4(input.normal.xyz, 1);
-    return float4(lightColour*textureColour);
+    return float4(lightColor*textureColor);
 }

@@ -156,6 +156,8 @@ void HeightmapShader::setShaderParameters(ID3D11DeviceContext* deviceContext, co
 	dirLightPtr = (DirectionalLightBufferType*)mappedResource.pData;
 	dirLightPtr->ambient = directionalLight->getAmbientColour();
 	dirLightPtr->diffuse = directionalLight->getDiffuseColour();
+	// Set buffer pointer with pointlight position -->  Note: I hate that I can't do getPosition().xyz, makes line too long.
+	dirLightPtr->direction = XMFLOAT4(directionalLight->getDirection().x, directionalLight->getDirection().y, directionalLight->getDirection().z,1.f);
 	
 	deviceContext->Unmap(dirLightBuffer, 0);
 
@@ -183,17 +185,17 @@ void HeightmapShader::setShaderParameters(ID3D11DeviceContext* deviceContext, co
 
 	//Directional Light
 	//Get orthomatrix
-	lightMatrixPtr->dirLightProjection = directionalLight->getOrthoMatrix();
+	lightMatrixPtr->dirLightProjection = XMMatrixTranspose(directionalLight->getOrthoMatrix());
 	//Need to update view matrix
 	directionalLight->generateViewMatrix();
-	lightMatrixPtr->dirLightView = directionalLight->getViewMatrix();
+	lightMatrixPtr->dirLightView = XMMatrixTranspose(directionalLight->getViewMatrix());
 
 	//Pointlight
 	//For every pointlight send the projection matrix of the pointlight.
 	for (size_t i = 0; i < numberOfPointlights; i++)
 	{
 		//Get projection Matrix of pointlight
-		lightMatrixPtr->pointlightProjection[i] = pointlight[i]->getProjectionMatrix();
+		lightMatrixPtr->pointlightProjection[i] = XMMatrixTranspose(pointlight[i]->getProjectionMatrix());
 	}
 
 	//For every element in view array transpone and send to GPU buffer

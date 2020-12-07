@@ -221,6 +221,7 @@ private:
 
 	#pragma endregion
 
+	HeightmapShader::CameraBufferType a;
 };
 
 #endif

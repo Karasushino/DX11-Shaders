@@ -75,8 +75,8 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     
     float planeSize = 120.f;
     
-    float2 leftC = texturePosition - float2(-1.f / planeSize, 0.0f);
-    float2 rightC = texturePosition - float2(1.f / planeSize, 0.0f);
+    float2 leftC = texturePosition - float2(1.f / planeSize, 0.0f);
+    float2 rightC = texturePosition - float2(-1.f / planeSize, 0.0f);
     float2 bottomC = texturePosition - float2(0.0f, 1.f / planeSize);
     float2 topC = texturePosition - float2(0.0f, -1.f / planeSize);
     
