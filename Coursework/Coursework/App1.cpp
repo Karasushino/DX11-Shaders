@@ -93,7 +93,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	pointlight[1]->setDiffuseColour(0.0f, .0f,0.0f, 1.0f);
 	pointlight[1]->setPosition(50.0f, 10.0f, 50.0f);
 	pointlight[1]->setDirection(1.f, 1.f, 1.0f);
-	pointlight[1]->generateProjectionMatrix(2.f, 100.f);
+	pointlight[1]->generateProjectionMatrix(4.f, 100.f);
 	//Default Attenuation Factors
 	pointlight[1]->setAttenuationFactors(XMFLOAT3(1.f, 0.175f, 0.0f));
 
@@ -258,18 +258,6 @@ void App1::cameraDepthPass()
 	depthShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, camViewMatrix, camProjectionMatrix);
 	depthShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
 
-
-	//XMVECTOR direction = XMVectorSet(0.f, 1.f, 0.f, 0.f);
-	//worldMatrix = renderer->getWorldMatrix();
-
-	//XMMATRIX scaleMatrix = XMMatrixScaling(0.5f, 0.5f, 0.5f);
-	//worldMatrix = XMMatrixMultiply(worldMatrix, scaleMatrix);
-	//worldMatrix = XMMatrixTranslation(0.f, 7.f, 5.f);
-	//// Render model
-	//model->sendData(renderer->getDeviceContext());
-	//depthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
-	//depthShader->render(renderer->getDeviceContext(), model->getIndexCount());
-
 	// Set back buffer as render target and reset view port.
 	renderer->setBackBufferRenderTarget();
 	renderer->resetViewport();
@@ -302,7 +290,7 @@ void App1::pointlightDepthPass()
 			XMMATRIX lightProjectionMatrix = pointlight[i]->getProjectionMatrix();
 
 			XMMATRIX worldMatrix = renderer->getWorldMatrix();
-			worldMatrix = XMMatrixTranslation(-50.f, 0.f, -10.f);
+
 			//Render terrain for Depth map
 			planeMesh->sendData(renderer->getDeviceContext());
 			DepthHeightmapShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, amplitude, textureMgr->getTexture(L"height"));
@@ -372,26 +360,26 @@ void App1::firstPass()
 	WaterShader->render(renderer->getDeviceContext(), waterPlaneMesh->getIndexCount());
 	renderer->setAlphaBlending(0);
 
-
+	
+	//Debuging window
 	smolOrthoMesh->sendData(renderer->getDeviceContext());
 	XMMATRIX orthoMatrix = renderer->getOrthoMatrix();
 	XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();
-	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, depthmapDirectional->getDepthMapSRV());
+	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, pointlightDepthTextures[4]);
 	textureShader->render(renderer->getDeviceContext(), smolOrthoMesh->getIndexCount());
 
-	
-	/*XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(ballposition[0], ballposition[1], ballposition[2]);
+	XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(position[0], position[1], position[2]);
 	CubeShadow->sendData(renderer->getDeviceContext());
-	cubeShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"), depthmapDirectional->getDepthMapSRV(), light);
-	cubeShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());*/
+	textureShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"));
+	textureShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
 
 	
-	/*renderer->setNoCullMode(true);
+	renderer->setNoCullMode(true);
 	grassMesh->sendData(renderer->getDeviceContext(), D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 	grassShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"WindMap"), time, textureMgr->getTexture(L"height"),
-		textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"));
+		textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"),amplitude);
 	grassShader->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
-	renderer->setNoCullMode(false);*/
+	renderer->setNoCullMode(false);
 
 
 	// Swap the buffers
@@ -564,6 +552,9 @@ void App1::finalPass()
 	textureShader->render(renderer->getDeviceContext(), orthoMesh->getIndexCount());
 	renderer->setZBuffer(true);
 
+
+	
+
 	// Render GUI
 	gui();
 	// Present the rendered scene to the screen.
@@ -619,7 +610,7 @@ void App1::gui()
 	directionalLight->setDiffuseColour(diff[0], diff[0], diff[0], 1.f);
 
 
-	ImGui::SliderFloat3("light position:", position, -50.f, 50.f);
+	ImGui::SliderFloat3("light position:", position, -120.f, 120.f);
 	pointlight[0]->setPosition(position[0], position[1], position[2]);
 
 
@@ -634,7 +625,11 @@ void App1::gui()
 	ImGui::SliderFloat("Focus Range", &DepthFieldSettings.y, 0.f, 15.f);
 	ImGui::SliderFloat("Close plane", &DepthFieldSettings.z, 0.f, 15.f);
 	ImGui::SliderFloat("Far plane", &DepthFieldSettings.w, 1.f, 150.f);
+	
+	ImGui::SliderFloat3("AttFactors", att, 0.f, 1.f);
+	pointlight[0]->setAttenuationFactors(XMFLOAT3(att[0], att[1], att[2]));
 
+	
 	// Render UI
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

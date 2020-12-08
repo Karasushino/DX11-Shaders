@@ -176,6 +176,7 @@
     <ClCompile Include="DepthShader.cpp" />
     <ClCompile Include="DepthShaderHeightmap.cpp" />
     <ClCompile Include="GeometryShader.cpp" />
+    <ClCompile Include="GeometryShaderDepth.cpp" />
     <ClCompile Include="HorizontalBlurShader.cpp" />
     <ClCompile Include="LightedTextureShader.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -192,6 +193,7 @@
     <ClInclude Include="DepthShader.h" />
     <ClInclude Include="DepthShaderHeightmap.h" />
     <ClInclude Include="GeometryShader.h" />
+    <ClInclude Include="GeometryShaderDepth.h" />
     <ClInclude Include="HorizontalBlurShader.h" />
     <ClInclude Include="LightedTextureShader.h" />
     <ClInclude Include="QuadPlaneMesh.h" />
@@ -234,11 +236,14 @@
     <FxCompile Include="shaders\depth_vs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\heightmapDepth_ds.hlsl">
+    <FxCompile Include="shaders\grassDepth_ds.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\heightmapDepth_ps.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+    <FxCompile Include="shaders\grassDepth_gs.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shaders\heightmapDepth_ds.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
     </FxCompile>
     <FxCompile Include="shaders\heightmap_ds.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>

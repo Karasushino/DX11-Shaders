@@ -61,6 +61,8 @@ public:
 	{
 		XMFLOAT4 diffuse[numberOfPointlights];
 		XMFLOAT4 position[numberOfPointlights];
+		XMFLOAT4 attenuation[numberOfPointlights];
+
 	};
 
 

@@ -42,9 +42,9 @@ public:
 	void setSpecularPower(float power);											///< Set specular power
 	void setPosition(float x, float y, float z);								///< Set light position (for point lights)
 	void setLookAt(float x, float y, float z);									///< Set light lookAt (near deprecation)
-	void setAttenuationFactors(XMFLOAT3 attenuation)
+	void setAttenuationFactors(XMFLOAT3 att)
 	{
-		attenuation;
+		attenuation = att;
 	}
 
 	// Getters

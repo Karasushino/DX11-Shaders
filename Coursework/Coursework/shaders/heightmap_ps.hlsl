@@ -20,6 +20,7 @@ cbuffer PointlightBufferType : register(b1)
 {
     float4 diffuse[numberOfPointlights];
     float4 position[numberOfPointlights];
+    float4 attenuation[numberOfPointlights];
 };
 
 cbuffer LightMatrixBufferType : register(b2)
@@ -122,8 +123,14 @@ float4 getPointlightContribution(float shadowMapBias, InputType input)
         
         //Distance for attenuation calculation = lenght of light vector
         float distance = length(lightVector);
+        
+        //Calculate the attenuation scalar value for the diffuse 
+        float att = calculateAttenuation((float3) attenuation[i], distance);
+        
+        
        
         //"z" corresponds to the pointlight depth map
+        //Check only forward
         for (int z = 0; z < numberOfPointlights * 6; z++)
         {
             //Calculate the view position from the pointlight perspective
@@ -141,18 +148,20 @@ float4 getPointlightContribution(float shadowMapBias, InputType input)
                 {
                     //is NOT in shadow, therefore light
                 
-                    lightColour += calculateDiffuseLighting(lightVector, input.normal, diffuse[i]);
-                    //No attenuation yet, need to pass it to buffer I forgot : (
-                   // lightColour += calculateAttenuation((float3) attenuation[i + 1], distance);
                    
+                
+                    lightColour += calculateDiffuseLighting(lightVector, input.normal, diffuse[i] * att);
+                    //No attenuation yet, need to pass it to buffer I forgot : (
+                   // lightColour = float4(1, 0, 0, 0);
+
                 }
-                else
-                    lightColour = float4(1, 0, 0, 1);
+                
             }
-            //else
-               // return float4(1, 0, 1, 1);
+          
         }
-        
+        //float att = calculateAttenuation((float3) attenuation[i], distance);
+                
+       // lightColour += calculateDiffuseLighting(lightVector, input.normal, diffuse[i] * att);
     }
     return lightColour;
 }
@@ -188,7 +197,7 @@ float4 getDirectionalLightContribution(float shadowMapBias, InputType input)
 float4 main(InputType input) : SV_TARGET
 {
 	//This will be changed to a buffer later on.
-    float shadowMapBias = 0.001f;
+    float shadowMapBias = 0.01f;
 
     
 	// Sample the color of the pixel based on sampled texture.

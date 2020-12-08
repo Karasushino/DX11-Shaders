@@ -1,12 +1,12 @@
 // geometry shader.cpp
-#include "geometryshader.h"
+#include "geometryshaderdepth.h"
 
-GeometryShader::GeometryShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
+GeometryShaderDepth::GeometryShaderDepth(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
-	initShader(L"triangle_vs.cso",L"triangle_hs.cso", L"triangle_ds.cso" ,L"triangle_gs.cso", L"triangle_ps.cso");
+	initShader(L"triangle_vs.cso",L"triangle_hs.cso", L"grassDepth_ds.cso" ,L"triangle_gs.cso", L"triangle_ps.cso");
 }
 
-GeometryShader::~GeometryShader()
+GeometryShaderDepth::~GeometryShaderDepth()
 {
 	// Release the sampler state.
 	if (sampleState)
@@ -33,7 +33,7 @@ GeometryShader::~GeometryShader()
 	BaseShader::~BaseShader();
 }
 
-void GeometryShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilename)
+void GeometryShaderDepth::initShader(const wchar_t* vsFilename, const wchar_t* psFilename)
 {
 	// Load (+ compile) shader files
 	loadVertexShader(vsFilename);
@@ -66,7 +66,7 @@ void GeometryShader::initShader(const wchar_t* vsFilename, const wchar_t* psFile
 
 }
 
-void GeometryShader::initShader(const wchar_t* vsFilename, const wchar_t* hsFilename, const wchar_t* dsFilename, const wchar_t* gsFilename, const wchar_t* psFilename)
+void GeometryShaderDepth::initShader(const wchar_t* vsFilename, const wchar_t* hsFilename, const wchar_t* dsFilename, const wchar_t* gsFilename, const wchar_t* psFilename)
 {
 	// InitShader must be overwritten and it will load both vertex and pixel shaders + setup buffers
 	initShader(vsFilename, psFilename);
@@ -78,7 +78,7 @@ void GeometryShader::initShader(const wchar_t* vsFilename, const wchar_t* hsFile
 }
 
 
-void GeometryShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* texture, float time, ID3D11ShaderResourceView* height, ID3D11ShaderResourceView* noise
+void GeometryShaderDepth::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* texture, float time, ID3D11ShaderResourceView* height, ID3D11ShaderResourceView* noise
 	, ID3D11ShaderResourceView* grassNoise, float amplitude)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedResource;

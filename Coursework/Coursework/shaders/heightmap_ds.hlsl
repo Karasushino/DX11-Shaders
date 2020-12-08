@@ -69,6 +69,14 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     float3 n2 = lerp(patch[3].normal, patch[2].normal, uvwCoord.y);
     float3 normalPosition = lerp(n1, n2, uvwCoord.x);
     
+    
+    
+      
+    float4 temp = heightmapTexture.SampleLevel(displacementSampler, texturePosition.xy, 0);
+    float height = temp.y;
+    vertexPosition.y = height * amplitude;
+    
+    
     // Recalculate normals for a Heightmap
     /**Source: Introduction to 3D Game Programming with DirectX11 by Frank D.Luna. Page:614-615*/
     //Calculate neighbouring coordinates
@@ -97,10 +105,7 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     
     //normalPosition = normal;
     
-     
-    float4 temp = heightmapTexture.SampleLevel(displacementSampler, texturePosition.xy, 0);
-    float height = temp.y;
-    vertexPosition.y = height * amplitude;
+   
     
     
     //All jumowombo preparation

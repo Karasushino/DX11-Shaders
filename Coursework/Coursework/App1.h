@@ -211,15 +211,16 @@ private:
 
 	//Pointlight directions for depthmaping
 	XMFLOAT3 directions[6] = {
-		XMFLOAT3(0,1,0),    // Up
-		XMFLOAT3(0,-1,0),// Down
-		XMFLOAT3(1,0,0),    // Right
-		XMFLOAT3(-1,0,0),    // Left
-		XMFLOAT3(0,0,1),    // Fowards
-		XMFLOAT3(0,0,-1)    // Backwards
+		XMFLOAT3(0.f,1.f,0.f),    // Up
+		XMFLOAT3(0.f,-1.f,0.f),// Down
+		XMFLOAT3(1.f,0.f,0.f),    // Right
+		XMFLOAT3(-1.f,0.f,0.f),    // Left
+		XMFLOAT3(0.f,0.f,1.f),    // Fowards
+		XMFLOAT3(0.f,0.f,-1.f)    // Backwards
 	};
 
 	#pragma endregion
+	float att[3] = { 1.f, 0.175f, 0.0f };
 
 	HeightmapShader::CameraBufferType a;
 };

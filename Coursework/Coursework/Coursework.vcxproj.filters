@@ -13,17 +13,11 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Resource Files\Heightmap Depth">
-      <UniqueIdentifier>{beb9ca8a-2abf-4e93-91e9-0081123083c2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource Files\Base Shaders">
       <UniqueIdentifier>{307b27c6-1b5c-43d9-938d-ed305606f663}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resource Files\Grass Shader">
       <UniqueIdentifier>{00adfedb-33ec-4ed4-8735-bc9a4c54e587}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Heightmap shaders">
-      <UniqueIdentifier>{fb0aef6d-1f5d-44f3-b2c0-92717554c0ea}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resource Files\Water Shaders">
       <UniqueIdentifier>{bc861742-f3dd-4e34-aa28-99a69fe63d84}</UniqueIdentifier>
@@ -36,6 +30,15 @@
     </Filter>
     <Filter Include="Source Files\Post Processing cpp">
       <UniqueIdentifier>{10ebc88e-91e0-4b10-8973-eaaaa2f9c165}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Heightmap Shaders">
+      <UniqueIdentifier>{fb0aef6d-1f5d-44f3-b2c0-92717554c0ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Heightmap Shaders\Heightmap Depth Shaders">
+      <UniqueIdentifier>{beb9ca8a-2abf-4e93-91e9-0081123083c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Grass Shader\Grass Depth Shader">
+      <UniqueIdentifier>{ef939871-62f5-426c-ac76-bce61a44081f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -78,6 +81,9 @@
     <ClCompile Include="DepthOfFieldShader.cpp">
       <Filter>Source Files\Post Processing cpp</Filter>
     </ClCompile>
+    <ClCompile Include="GeometryShaderDepth.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App1.h">
@@ -119,13 +125,13 @@
     <ClInclude Include="BufferHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GeometryShaderDepth.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\heightmapDepth_ds.hlsl">
-      <Filter>Resource Files\Heightmap Depth</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\heightmapDepth_ps.hlsl">
-      <Filter>Resource Files\Heightmap Depth</Filter>
+      <Filter>Resource Files\Heightmap Shaders\Heightmap Depth Shaders</Filter>
     </FxCompile>
     <FxCompile Include="baseShadow_ps.hlsl">
       <Filter>Resource Files\Base Shaders</Filter>
@@ -158,16 +164,16 @@
       <Filter>Resource Files\Grass Shader</Filter>
     </FxCompile>
     <FxCompile Include="shaders\heightmap_ds.hlsl">
-      <Filter>Resource Files\Heightmap shaders</Filter>
+      <Filter>Resource Files\Heightmap Shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\heightmap_hs.hlsl">
-      <Filter>Resource Files\Heightmap shaders</Filter>
+      <Filter>Resource Files\Heightmap Shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\heightmap_ps.hlsl">
-      <Filter>Resource Files\Heightmap shaders</Filter>
+      <Filter>Resource Files\Heightmap Shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\heightmap_vs.hlsl">
-      <Filter>Resource Files\Heightmap shaders</Filter>
+      <Filter>Resource Files\Heightmap Shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\tessellation_ds.hlsl">
       <Filter>Resource Files\Water Shaders</Filter>
@@ -204,6 +210,12 @@
     </FxCompile>
     <FxCompile Include="depthOfField_ps.hlsl">
       <Filter>Resource Files\Postprocessing Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\grassDepth_ds.hlsl">
+      <Filter>Resource Files\Grass Shader\Grass Depth Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\grassDepth_gs.hlsl">
+      <Filter>Resource Files\Grass Shader\Grass Depth Shader</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

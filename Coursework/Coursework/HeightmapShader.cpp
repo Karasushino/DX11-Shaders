@@ -172,7 +172,9 @@ void HeightmapShader::setShaderParameters(ID3D11DeviceContext* deviceContext, co
 		//Set diffuse color.
 		pointlightPtr->diffuse[i] = pointlight[i]->getDiffuseColour();
 		// Set buffer pointer with pointlight position -->  Note: I hate that I can't do getPosition().xyz, makes line too long.
-		pointlightPtr->position[i] = XMFLOAT4(pointlight[i]->getPosition().x, pointlight[i]->getPosition().y, pointlight[i]->getPosition().z,1);
+		pointlightPtr->position[i] = XMFLOAT4(pointlight[i]->getPosition().x, pointlight[i]->getPosition().y, pointlight[i]->getPosition().z,0.f);
+		pointlightPtr->attenuation[i] = XMFLOAT4(pointlight[i]->getAttenuationFactors().x, pointlight[i]->getAttenuationFactors().y, pointlight[i]->getAttenuationFactors().z,0.f);
+
 	}
 	
 	deviceContext->Unmap(pointLightBuffer, 0);
