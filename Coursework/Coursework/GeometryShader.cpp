@@ -1,5 +1,5 @@
 // geometry shader.cpp
-#include "geometryshader.h"
+#include "GeometryShader.h"
 
 GeometryShader::GeometryShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
@@ -38,31 +38,36 @@ void GeometryShader::initShader(const wchar_t* vsFilename, const wchar_t* psFile
 	// Load (+ compile) shader files
 	loadVertexShader(vsFilename);
 	loadPixelShader(psFilename);
+	//Sampler for normal textures
+	D3D11_SAMPLER_DESC samplerDesc = BufferHelpers::CreateSamplerDescription();
+	renderer->CreateSamplerState(&samplerDesc, &sampleState);
 
+	//Sampler for DepthMaps
+	D3D11_SAMPLER_DESC shadowSamplerDesc = BufferHelpers::CreateShadowSamplerDescription();
+	renderer->CreateSamplerState(&samplerDesc, &sampleStateShadow);
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	D3D11_BUFFER_DESC matrixBufferDesc;
-	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
-	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	matrixBufferDesc.MiscFlags = 0;
-	matrixBufferDesc.StructureByteStride = 0;
-	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	D3D11_BUFFER_DESC matrixBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(MatrixBufferType));
 	renderer->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	D3D11_BUFFER_DESC grassBufferDesc;
-	grassBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	grassBufferDesc.ByteWidth = sizeof(GrassBufferType);
-	grassBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	grassBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	grassBufferDesc.MiscFlags = 0;
-	grassBufferDesc.StructureByteStride = 0;
+	D3D11_BUFFER_DESC grassBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(GrassBufferType));
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
 	renderer->CreateBuffer(&grassBufferDesc, NULL, &grassBuffer);
 
+	// Setup the description of the dynamic matrix constant buffer that is in the pixel shader.
+		D3D11_BUFFER_DESC lightMatrixBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(LightMatrixBufferType));
+	renderer->CreateBuffer(&lightMatrixBufferDesc, NULL, &lightMatrixBuffer);
+
+	// Setup light buffer
+	// Setup the description of the light dynamic constant buffer that is in the pixel shader.
+	D3D11_BUFFER_DESC lightBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(DirectionalLightBufferType));
+
+	renderer->CreateBuffer(&lightBufferDesc, NULL, &dirLightBuffer);
+
+
 	D3D11_BUFFER_DESC heightmapBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(HeightmapBufferType));
 	renderer->CreateBuffer(&heightmapBufferDesc, NULL, &heightmapBuffer);
+
 
 }
 
@@ -79,7 +84,7 @@ void GeometryShader::initShader(const wchar_t* vsFilename, const wchar_t* hsFile
 
 
 void GeometryShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* texture, float time, ID3D11ShaderResourceView* height, ID3D11ShaderResourceView* noise
-	, ID3D11ShaderResourceView* grassNoise, float amplitude)
+	,ID3D11ShaderResourceView* grassNoise, float amplitude, Light* directionalLight, ID3D11ShaderResourceView* directionalDepthTex)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
@@ -125,5 +130,40 @@ void GeometryShader::setShaderParameters(ID3D11DeviceContext* deviceContext, con
 	deviceContext->GSSetShaderResources(2, 1, &grassNoise);
 	deviceContext->GSSetSamplers(0, 1, &sampleState);
 
+	//ps
+ 
+	// Send light data to pixel shader
+	DirectionalLightBufferType* dirLightPtr;
+	deviceContext->Map(dirLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	//Set directional light buffer
+	dirLightPtr = (DirectionalLightBufferType*)mappedResource.pData;
+	dirLightPtr->ambient = directionalLight->getAmbientColour();
+	dirLightPtr->diffuse = directionalLight->getDiffuseColour();
+	// Set buffer pointer with pointlight position -->  Note: I hate that I can't do getPosition().xyz, makes line too long.
+	dirLightPtr->direction = XMFLOAT4(directionalLight->getDirection().x, directionalLight->getDirection().y, directionalLight->getDirection().z, 1.f);
+
+	deviceContext->Unmap(dirLightBuffer, 0);
+
+	
+	//Set pointlight light buffer
+	LightMatrixBufferType* lightMatrixPtr;
+	deviceContext->Map(lightMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	lightMatrixPtr = (LightMatrixBufferType*)mappedResource.pData;
+
+	//Directional Light
+	//Get orthomatrix
+	lightMatrixPtr->dirLightProjection = XMMatrixTranspose(directionalLight->getOrthoMatrix());
+	//Need to update view matrix
+	directionalLight->generateViewMatrix();
+	lightMatrixPtr->dirLightView = XMMatrixTranspose(directionalLight->getViewMatrix());
+
+
+	deviceContext->Unmap(lightMatrixBuffer, 0);
+
+
+	//Set buffers
+	deviceContext->PSSetConstantBuffers(0, 1, &dirLightBuffer);
+	deviceContext->PSSetConstantBuffers(1, 1, &lightMatrixBuffer);
 
 }

@@ -1,11 +1,8 @@
-// triangle_gs
-// Geometry shader that generates a triangle for every vertex.
-Texture2D texture0 : register(t0);
+Texture2D windSwayTexture : register(t0);
 Texture2D noiseTexture : register(t1);
 Texture2D grassSpawnTexture : register(t2);
 
 SamplerState Sampler0 : register(s0);
-SamplerState Sampler1 : register(s1);
 
 cbuffer MatrixBuffer : register(b0)
 {
@@ -31,8 +28,7 @@ struct InputType
 struct OutputType
 {
     float4 position : SV_POSITION;
-    float2 tex : TEXCOORD0;
-    float3 normal : NORMAL;
+    float4 depthPosition : TEXCOORD0;
 };
 
 //Converts to homegenous coords
@@ -46,9 +42,7 @@ OutputType makeNewVertex(float3 transformation, InputType input[3], float2 uv)
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
     
-    output.tex = uv;
-    output.normal = mul(input[0].normal, (float3x3) worldMatrix);
-    output.normal = normalize(output.normal);
+    output.depthPosition = input[0].worldPosition + float4(transformation.xyz, 0.f);
     return output;
 }
 
@@ -88,7 +82,7 @@ float3 AddRotation(float3 pos, float rotationScalar)
 void drawGrassBlade(OutputType output, InputType input[3], inout TriangleStream<OutputType> triStream)
 {
     //Variables will be buffer
-    float maxHeight = 2.f;
+    float maxHeight = 9.f;
     float height = maxHeight;
     float width = 0.5f;
     float windStrength = 1.5f;
@@ -99,7 +93,7 @@ void drawGrassBlade(OutputType output, InputType input[3], inout TriangleStream<
     float2 uv = frac(input[0].tex + time * frequency);
    
     //Substracting 0.5 will make it go forward in backwards, without it the grass its only pushed.
-    float2 windTexture = texture0.SampleLevel(Sampler1, uv, 0) - 0.5f;
+    float2 windTexture = windSwayTexture.SampleLevel(Sampler0, uv, 0) - 0.5f;
     
     float2 windFactor = float2(windTexture.x, windTexture.y) * windStrength;
     float randomRotation = noiseTexture.SampleLevel(Sampler0, input[0].tex, 0);

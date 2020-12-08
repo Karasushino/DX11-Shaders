@@ -47,8 +47,9 @@ OutputType makeNewVertex(float3 transformation, InputType input[3], float2 uv)
     output.position = mul(output.position, projectionMatrix);
     
     output.tex = uv;
-    output.normal = mul(input[0].normal, (float3x3) worldMatrix);
-    output.normal = normalize(output.normal);
+    //output.normal = mul(float3(transformation.x, transformation.y, transformation.z), (float3x3) worldMatrix);
+    output.normal = input[0].normal;
+   // output.normal = normalize(output.normal);
     return output;
 }
 

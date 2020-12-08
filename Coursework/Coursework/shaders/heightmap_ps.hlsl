@@ -159,9 +159,7 @@ float4 getPointlightContribution(float shadowMapBias, InputType input)
             }
           
         }
-        //float att = calculateAttenuation((float3) attenuation[i], distance);
-                
-       // lightColour += calculateDiffuseLighting(lightVector, input.normal, diffuse[i] * att);
+       
     }
     return lightColour;
 }
@@ -184,12 +182,7 @@ float4 getDirectionalLightContribution(float shadowMapBias, InputType input)
            
 
         }
-        else
-            color = float4(1, 0, 0, 1);
     }
-    else
-        return float4(1, 0, 1, 1);
-    
     
     return color;
 }
@@ -235,7 +228,8 @@ float4 main(InputType input) : SV_TARGET
     
     //Calculate light contribution of pointlights and aditivelly blend.
     lightColor += getPointlightContribution(shadowMapBias,input);
-    
+    lightColor += getDirectionalLightContribution(shadowMapBias, input);
+
     //return float4(input.normal.xyz, 1);
 
     //Combine with the texture and return

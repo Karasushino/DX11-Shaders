@@ -32,6 +32,8 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	depthFieldShader = new DepthOfFieldShader(renderer->getDevice(), hwnd);
 
 
+	grassShaderDepth = new GeometryShaderDepth(renderer->getDevice(), hwnd);
+
 	grassMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 120);
 
 	//EdgeTesellation = XMFLOAT4(1.0f, 1.0f, 1.0f,1.0f);
@@ -228,6 +230,13 @@ void App1::depthPass()
 		depthShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
 
 
+		// Render terrain
+		grassMesh->sendData(renderer->getDeviceContext());
+		grassShaderDepth->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture(L"WindMap"), time, textureMgr->getTexture(L"height"),
+			textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"), amplitude);
+		grassShaderDepth->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
+
+
 		// Set back buffer as render target and reset view port.
 		renderer->setBackBufferRenderTarget();
 		renderer->resetViewport();
@@ -257,6 +266,13 @@ void App1::cameraDepthPass()
 	CubeShadow->sendData(renderer->getDeviceContext());
 	depthShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, camViewMatrix, camProjectionMatrix);
 	depthShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
+
+	// Render terrain
+	grassMesh->sendData(renderer->getDeviceContext());
+	grassShaderDepth->setShaderParameters(renderer->getDeviceContext(), worldMatrix, camViewMatrix, camProjectionMatrix, textureMgr->getTexture(L"WindMap"), time, textureMgr->getTexture(L"height"),
+		textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"), amplitude);
+	grassShaderDepth->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
+
 
 	// Set back buffer as render target and reset view port.
 	renderer->setBackBufferRenderTarget();
@@ -304,6 +320,13 @@ void App1::pointlightDepthPass()
 			depthShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, lightViewMatrix, lightProjectionMatrix);
 			depthShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
 			
+
+			// Render terrain
+			grassMesh->sendData(renderer->getDeviceContext());
+			grassShaderDepth->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture(L"WindMap"), time, textureMgr->getTexture(L"height"),
+				textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"), amplitude);
+			grassShaderDepth->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
+
 
 			// Set back buffer as render target and reset view port.
 			renderer->setBackBufferRenderTarget();
@@ -365,22 +388,22 @@ void App1::firstPass()
 	smolOrthoMesh->sendData(renderer->getDeviceContext());
 	XMMATRIX orthoMatrix = renderer->getOrthoMatrix();
 	XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();
-	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, pointlightDepthTextures[4]);
+	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, depthmapDirectional->getDepthMapSRV());
 	textureShader->render(renderer->getDeviceContext(), smolOrthoMesh->getIndexCount());
 
-	XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(position[0], position[1], position[2]);
+	XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(ballposition[0], ballposition[1], ballposition[2]);
 	CubeShadow->sendData(renderer->getDeviceContext());
 	textureShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"));
 	textureShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
 
 	
-	renderer->setNoCullMode(true);
+	/*renderer->setNoCullMode(true);
 	grassMesh->sendData(renderer->getDeviceContext(), D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 	grassShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"WindMap"), time, textureMgr->getTexture(L"height"),
-		textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"),amplitude);
+		textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"),amplitude,directionalLight, depthmapDirectional->getDepthMapSRV());
 	grassShader->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
 	renderer->setNoCullMode(false);
-
+*/
 
 	// Swap the buffers
 	renderer->setBackBufferRenderTarget();
@@ -568,12 +591,22 @@ void App1::gui()
 	renderer->getDeviceContext()->HSSetShader(NULL, NULL, 0);
 	renderer->getDeviceContext()->DSSetShader(NULL, NULL, 0);
 
+	static bool smth ;
+	ImGui::Checkbox("Lights", &smth);
 	// Build UI
-	ImGui::Text("FPS: %.2f", timer->getFPS());
-	ImGui::Text("Time elapsed: %.2f", time);
-	ImGui::Checkbox("Wireframe mode", &wireframeToggle);
-	ImGui::SliderFloat("Tesellation Scalar", &TesellationFactor.x, 1.0f, 20.0f);
-	ImGui::SliderFloat("Amplitude Heightmap", &amplitude, 1.0f, 100.0f);
+	if (smth)
+	{
+		ImGui::Begin("Name");
+		ImGui::SetWindowSize("Name", ImVec2(600, 150));
+
+		ImGui::Text("FPS: %.2f", timer->getFPS());
+		ImGui::Text("Time elapsed: %.2f", time);
+		ImGui::Checkbox("Wireframe mode", &wireframeToggle);
+		ImGui::SliderFloat("Tesellation Scalar", &TesellationFactor.x, 1.0f, 20.0f);
+		ImGui::SliderFloat("Amplitude Heightmap", &amplitude, 1.0f, 100.0f);
+		ImGui::End();
+	}
+	
 
 	ImGui::SliderFloat("Wave Amplitude", &WaveSettings[0].y, 1.0f, 20.0f);
 	ImGui::SliderFloat("Wave Frequency: ", &WaveSettings[0].z, 1.0f, 20.0f);
@@ -610,11 +643,15 @@ void App1::gui()
 	directionalLight->setDiffuseColour(diff[0], diff[0], diff[0], 1.f);
 
 
-	ImGui::SliderFloat3("light position:", position, -120.f, 120.f);
-	pointlight[0]->setPosition(position[0], position[1], position[2]);
+	ImGui::SliderFloat3("light position:", pointPosition, -120.f, 120.f);
+	pointlight[0]->setPosition(pointPosition[0], pointPosition[1], pointPosition[2]);
 
 
 	ImGui::SliderFloat3("Ball position:", ballposition, -50.f, 50.f);
+
+
+	ImGui::SliderFloat3("Dir light pos:", position, -50.f, 50.f);
+	directionalLight->setPosition(position[0], position[1], position[2]);
 
 	ImGui::SliderFloat("Water Depth Scalar", &depthScalar, 0.f, 40.f);
 

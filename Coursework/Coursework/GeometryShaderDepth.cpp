@@ -3,7 +3,7 @@
 
 GeometryShaderDepth::GeometryShaderDepth(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
-	initShader(L"triangle_vs.cso",L"triangle_hs.cso", L"grassDepth_ds.cso" ,L"triangle_gs.cso", L"triangle_ps.cso");
+	initShader(L"triangle_vs.cso",L"triangle_hs.cso", L"grassDepth_ds.cso" ,L"triangle_gs.cso", L"depth_ps.cso");
 }
 
 GeometryShaderDepth::~GeometryShaderDepth()
@@ -78,7 +78,7 @@ void GeometryShaderDepth::initShader(const wchar_t* vsFilename, const wchar_t* h
 }
 
 
-void GeometryShaderDepth::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* texture, float time, ID3D11ShaderResourceView* height, ID3D11ShaderResourceView* noise
+void GeometryShaderDepth::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* swayTexture, float time, ID3D11ShaderResourceView* height, ID3D11ShaderResourceView* noise
 	, ID3D11ShaderResourceView* grassNoise, float amplitude)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -120,7 +120,7 @@ void GeometryShaderDepth::setShaderParameters(ID3D11DeviceContext* deviceContext
 	deviceContext->GSSetConstantBuffers(1, 1, &grassBuffer);
 
 	//use default sampler and set distortion texture to bend grass
-	deviceContext->GSSetShaderResources(0,1,&texture);
+	deviceContext->GSSetShaderResources(0,1,&swayTexture);
 	deviceContext->GSSetShaderResources(1, 1, &noise);
 	deviceContext->GSSetShaderResources(2, 1, &grassNoise);
 	deviceContext->GSSetSamplers(0, 1, &sampleState);

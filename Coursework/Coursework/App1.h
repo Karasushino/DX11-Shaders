@@ -11,6 +11,7 @@
 #include "DepthShader.h"
 #include "TextureShader.h"
 #include "GeometryShader.h"
+#include "GeometryShaderDepth.h"
 #include "LightedTextureShader.h"
 
 #include "HorizontalBlurShader.h"
@@ -85,6 +86,7 @@ private:
 
 	//Geometry Shaders
 	GeometryShader* grassShader;
+	GeometryShaderDepth* grassShaderDepth;
 
 	//Non Tesellated Shaders
 	DepthShaderHeightmap* DepthHeightmapShader; //Shader to only render for depth map generation
@@ -107,6 +109,9 @@ private:
 
 	//Position of sphere
 	float ballposition[3] = { 50.0f, 15.f, 50.0f };
+
+
+
 
 	//Parameters to adjust Tessellation manually.
 	XMFLOAT4 TesellationFactor;
@@ -190,8 +195,11 @@ private:
 	const static int numberOfPointlights = 1;
 
 	//Position of dir light
-	float position[3];
+	float position[3] = {50.f,15.f,50.f};
 
+
+	//Position of dir light
+	float pointPosition[3] = { 50.f,15.f,50.f };
 	//Light data and settings.
 	Light* directionalLight;
 	Light* pointlight[2];

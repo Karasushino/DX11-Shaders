@@ -63,29 +63,30 @@ OutputType main(ConstantOutputType input, float3 uvwCoord : SV_DomainLocation, c
     float height = temp.y;
     vertexPosition.y = height * amplitude;
     
-    ////Need to recalculate the normals to get the angle 
-    //// Recalculate normals for a Heightmap
-    ///**Source: Introduction to 3D Game Programming with DirectX11 by Frank D.Luna. Page:614-615*/
-    ////Calculate neighbouring coordinates
-    //float2 leftC = texturePosition + float2(-1.f / 100.f, 0.0f);
-    //float2 rightC = texturePosition + float2(1.f / 100.f, 0.0f);
-    //float2 bottomC = texturePosition + float2(0.0f, 1.f / 100.f);
-    //float2 topC = texturePosition + float2(0.0f, -1.f / 100.f);
+    // Recalculate normals for a Heightmap
+    /**Source: Introduction to 3D Game Programming with DirectX11 by Frank D.Luna. Page:614-615*/
+    //Calculate neighbouring coordinates
     
-    ////Sample neighbouring heightmap Y texture values
-    //float leftY = heightmapTexture.SampleLevel(displacementSampler, leftC, 0).r;
-    //float rightY = heightmapTexture.SampleLevel(displacementSampler, rightC, 0).r;
-    //float bottomY = heightmapTexture.SampleLevel(displacementSampler, bottomC, 0).r;
-    //float topY = heightmapTexture.SampleLevel(displacementSampler, topC, 0).r;
+    float planeSize = 120.f;
     
-    ////Get tange nt and bitan and cross product them to get normal. 
-    ////Get Directional vector between right and left and get tangent.
-    //float3 tangent = normalize(float3(2.0f * (1.0f / 100.0f), (rightY - leftY) * amplitude, 0.0f));
-    ////Get Directional vector between top and bottom and get tangent.
-    //float3 bitan = normalize(float3(0.0f, (bottomY - topY) * amplitude, -2.0f * (1.0f / 100.0f)));
-    //float3 normal = cross(tangent, bitan);
+    float2 leftC = texturePosition - float2(1.f / planeSize, 0.0f);
+    float2 rightC = texturePosition - float2(-1.f / planeSize, 0.0f);
+    float2 bottomC = texturePosition - float2(0.0f, 1.f / planeSize);
+    float2 topC = texturePosition - float2(0.0f, -1.f / planeSize);
     
-    //normalPosition = normal;
+    //Sample neighbouring heightmap Y texture values
+    float leftY = heightmapTexture.SampleLevel(displacementSampler, leftC, 0).r;
+    float rightY = heightmapTexture.SampleLevel(displacementSampler, rightC, 0).r;
+    float bottomY = heightmapTexture.SampleLevel(displacementSampler, bottomC, 0).r;
+    float topY = heightmapTexture.SampleLevel(displacementSampler, topC, 0).r;
+    
+    //Get tange nt and bitan and cross product them to get normal. 
+    //Get Directional vector between right and left and get tangent.
+    float3 tangent = normalize(float3(2.0f * (1.0f / 120.0f), (rightY - leftY), 0.0f));
+    //Get Directional vector between top and bottom and get tangent.
+    float3 bitan = normalize(float3(0.0f, (bottomY - topY), -2.0f * (1.0f / 120.0f)));
+    normalPosition = cross(tangent, bitan);
+    
     
     
     //All jumowombo preparation
