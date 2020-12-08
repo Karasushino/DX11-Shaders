@@ -18,7 +18,7 @@
 #include "VerticalBlurShader.h"
 
 #include "DepthOfFieldShader.h"
-
+#include "ImGuiFunctions.h"
 
 
 class App1 : public BaseApplication
@@ -36,6 +36,7 @@ public:
 	App1();
 	~App1();
 	void init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeight, Input* in, bool VSYNC, bool FULL_SCREEN);
+	void style();
 
 	bool frame();
 
@@ -119,7 +120,7 @@ private:
 	//Amplitude of terrain, height of terrain. Scalar for heightmap data.
 	float amplitude;
 
-	
+	bool renderGrass = true;
 	
 
 	/*x = Peakness(How sharp the wave is (not amplitude))

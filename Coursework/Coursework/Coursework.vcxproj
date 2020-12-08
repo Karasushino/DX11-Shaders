@@ -195,6 +195,7 @@
     <ClInclude Include="GeometryShader.h" />
     <ClInclude Include="GeometryShaderDepth.h" />
     <ClInclude Include="HorizontalBlurShader.h" />
+    <ClInclude Include="ImGuiFunctions.h" />
     <ClInclude Include="LightedTextureShader.h" />
     <ClInclude Include="QuadPlaneMesh.h" />
     <ClInclude Include="HeightmapShader.h" />

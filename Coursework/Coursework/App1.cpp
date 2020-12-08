@@ -6,12 +6,86 @@ App1::App1()
 {
 
 }
+void App1::style()
+{
+	//imGuiIO.Fonts->AddFontFromFileTTF("../data/Fonts/Ruda-Bold.ttf", 15.0f, &config);
+	ImGui::GetStyle().FrameRounding = 4.0f;
+	ImGui::GetStyle().GrabRounding = 4.0f;
+
+	ImGuiStyle* style = &ImGui::GetStyle();
+
+	ImVec4* colors = ImGui::GetStyle().Colors;
+
+	colors[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
+	colors[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
+	colors[ImGuiCol_WindowBg] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
+	colors[ImGuiCol_ChildBg] = ImVec4(0.15f, 0.18f, 0.22f, 1.00f);
+	colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
+	colors[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
+	colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	colors[ImGuiCol_FrameBg] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+	colors[ImGuiCol_FrameBgHovered] = ImVec4(0.12f, 0.20f, 0.28f, 1.00f);
+	colors[ImGuiCol_FrameBgActive] = ImVec4(0.09f, 0.12f, 0.14f, 1.00f);
+	colors[ImGuiCol_TitleBg] = ImVec4(0.09f, 0.12f, 0.14f, 0.65f);
+	colors[ImGuiCol_TitleBgActive] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
+	colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
+	colors[ImGuiCol_MenuBarBg] = ImVec4(0.15f, 0.18f, 0.22f, 1.00f);
+	colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.39f);
+	colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+	colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.18f, 0.22f, 0.25f, 1.00f);
+	colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.09f, 0.21f, 0.31f, 1.00f);
+	colors[ImGuiCol_CheckMark] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
+	colors[ImGuiCol_SliderGrab] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
+	colors[ImGuiCol_SliderGrabActive] = ImVec4(0.37f, 0.61f, 1.00f, 1.00f);
+	colors[ImGuiCol_Button] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+	colors[ImGuiCol_ButtonHovered] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
+	colors[ImGuiCol_ButtonActive] = ImVec4(0.06f, 0.53f, 0.98f, 1.00f);
+	colors[ImGuiCol_Header] = ImVec4(0.20f, 0.25f, 0.29f, 0.55f);
+	colors[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
+	colors[ImGuiCol_HeaderActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+	colors[ImGuiCol_Separator] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+	colors[ImGuiCol_SeparatorHovered] = ImVec4(0.10f, 0.40f, 0.75f, 0.78f);
+	colors[ImGuiCol_SeparatorActive] = ImVec4(0.10f, 0.40f, 0.75f, 1.00f);
+	colors[ImGuiCol_ResizeGrip] = ImVec4(0.26f, 0.59f, 0.98f, 0.25f);
+	colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
+	colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
+	//colors[ImguiCol_tab] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
+	//colors[ImGuiCol_TabHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
+	//colors[ImGuiCol_TabActive] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+	//colors[ImGuiCol_TabUnfocused] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
+	//colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
+	colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+	colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+	colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+	colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+	colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+	colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+	colors[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+	colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+	colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+	colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+
+	style->FramePadding = ImVec2(4, 2);
+	style->ItemSpacing = ImVec2(10, 15);
+	style->IndentSpacing = 12;
+	style->ScrollbarSize = 10;
+
+	style->WindowRounding = 4;
+	style->FrameRounding = 5;
+	style->PopupRounding = 5;
+	style->ScrollbarRounding = 6;
+	style->GrabRounding = 4;
+	
+
+
+
+}
 
 void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeight, Input *in, bool VSYNC, bool FULL_SCREEN)
 {
 	// Call super/parent init function (required!)
 	BaseApplication::init(hinstance, hwnd, screenWidth, screenHeight, in, VSYNC, FULL_SCREEN);
-
+	style();
 
 
 	// Create Mesh object and shader object
@@ -133,14 +207,15 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	//Depth of Field parameters
 	//Distance Focus
-	DepthFieldSettings.x = 5.f;
+	DepthFieldSettings.x = 0.f;
 	//Focus Range
-	DepthFieldSettings.y = 10.f;
+	DepthFieldSettings.y = 11.7f;
 	//Close plane
-	DepthFieldSettings.z = 0.1f;
+	DepthFieldSettings.z = 7.1f;
 	//Far plane
-	DepthFieldSettings.w = 100.f;
+	DepthFieldSettings.w = 71.7;
 }
+
 
 
 App1::~App1()
@@ -396,14 +471,16 @@ void App1::firstPass()
 	textureShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"));
 	textureShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
 
-	
-	/*renderer->setNoCullMode(true);
+	if (renderGrass)
+	{
+	renderer->setNoCullMode(true);
 	grassMesh->sendData(renderer->getDeviceContext(), D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 	grassShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"WindMap"), time, textureMgr->getTexture(L"height"),
 		textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"),amplitude,directionalLight, depthmapDirectional->getDepthMapSRV());
 	grassShader->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
 	renderer->setNoCullMode(false);
-*/
+	}
+
 
 	// Swap the buffers
 	renderer->setBackBufferRenderTarget();
@@ -590,81 +667,168 @@ void App1::gui()
 	renderer->getDeviceContext()->GSSetShader(NULL, NULL, 0);
 	renderer->getDeviceContext()->HSSetShader(NULL, NULL, 0);
 	renderer->getDeviceContext()->DSSetShader(NULL, NULL, 0);
+	ImGui::BeginMainMenuBar();
+	ImGui::Text("FPS: %.2f", timer->getFPS());
+	ImGui::Text("Time elapsed: %.2f", time);
+	ImGui::EndMainMenuBar();
 
-	static bool smth ;
-	ImGui::Checkbox("Lights", &smth);
-	// Build UI
-	if (smth)
+
+	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.45f);
+
+	ImGui::Checkbox("Wireframe mode", &wireframeToggle);
+
+	//Water bool
+	static bool mizu = false;
+	ImGuiFunctions::ToggleButton(ImGui::Button("Water"), &mizu);
+	ImGui::SameLine();
+	ImGui::Checkbox("", &mizu);
+	// Water settings window
+	if (mizu)
 	{
-		ImGui::Begin("Name");
-		ImGui::SetWindowSize("Name", ImVec2(600, 150));
+		ImGui::Begin("Water Settings", &mizu);
+		//Resizes slider
+		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.40f);
 
-		ImGui::Text("FPS: %.2f", timer->getFPS());
-		ImGui::Text("Time elapsed: %.2f", time);
-		ImGui::Checkbox("Wireframe mode", &wireframeToggle);
-		ImGui::SliderFloat("Tesellation Scalar", &TesellationFactor.x, 1.0f, 20.0f);
+		//Header for the settings of Wave 1
+		if(ImGui::CollapsingHeader("Wave 1 Settings"))
+		{
+			ImGui::SliderFloat("Wave Amplitude", &WaveSettings[0].y, 1.0f, 20.0f);
+			ImGui::SliderFloat("Wave Frequency: ", &WaveSettings[0].z, 1.0f, 20.0f);
+			ImGui::SliderFloat("Wave Speed: ", &WaveSettings[0].w, 1.0f, 20.0f);
+			//Smootheness
+		//Direction Vector
+			ImGui::SliderAngle("Wave Direction: ", &WaveDirection[0], 0.0f, 360.0f);
+			ImGui::SliderFloat("Wave Smoothness: ", &WaveSettings[0].x, 0.0f, 1.0f);
+		}
+		ImGui::Separator();
+
+		//Header for the settings of Wave 2
+		if (ImGui::CollapsingHeader("Wave 2 Settings"))
+		{
+			ImGui::SliderFloat("Wave 2 Amplitude", &WaveSettings[1].y, 1.0f, 20.0f);
+			ImGui::SliderFloat("Wave 2 Frequency: ", &WaveSettings[1].z, 1.0f, 20.0f);
+			ImGui::SliderFloat("Wave 2 Speed: ", &WaveSettings[1].w, 1.0f, 20.0f);
+			//Smootheness
+			//Direction Vector
+			ImGui::SliderAngle("Wave 2 Direction: ", &WaveDirection[1], 0.0f, 360.0f);
+			ImGui::SliderFloat("Wave 2 Smoothness: ", &WaveSettings[1].x, 0.0f, 1.0f);
+			
+		}
+		ImGui::Separator();
+
+		//Header for the settings of Wave 3
+		if (ImGui::CollapsingHeader("Wave 3 Settings"))
+		{
+			
+			ImGui::SliderFloat("Wave 3 Amplitude", &WaveSettings[2].y, 1.0f, 20.0f);
+			ImGui::SliderFloat("Wave 3 Frequency: ", &WaveSettings[2].z, 1.0f, 20.0f);
+			ImGui::SliderFloat("Wave 3 Speed: ", &WaveSettings[2].w, 1.0f, 20.0f);
+			//Smootheness
+			//Direction Vector
+			ImGui::SliderFloat("Wave 3 Direction: ", &WaveDirection[2], 0.0f, 360.0f);
+			ImGui::SliderFloat("Wave 3 Smoothness: ", &WaveSettings[2].x, 0.0f, 1.0f);
+			
+		}
+		ImGui::Separator();
+
+		//Header for the settings of water depth
+		if (ImGui::CollapsingHeader("Water Depth Color"))
+		{
+			ImGui::SliderFloat("Water Depth Scalar", &depthScalar, 0.f, 40.f);
+
+			ImGui::SliderFloat("Offset Depth", &waterOffset, 0.f, 15.f);
+		}
+		ImGui::Separator();
+
+		//Move the plane up or down
+		ImGui::SliderFloat("Water Level: ", &Sealevel, -20.0f, 20.0f);
+		ImGui::End();
+	}
+	
+	//Terrain bool window
+	static bool terrain = false;
+	ImGuiFunctions::ToggleButton(ImGui::Button("Terrain"), &terrain);
+	if (terrain)
+	{
+		ImGui::Begin("Terrain Settings", &terrain);
+		//Resizes slider
+		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.40f);
+		
+		ImGui::SliderFloat("Tessellation Factor", &TesellationFactor.x, 1.0f, 25.0f);
+		/*if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("Sets manually the tessellation factor");
+			ImGui::EndTooltip();
+
+		}*/
+			
 		ImGui::SliderFloat("Amplitude Heightmap", &amplitude, 1.0f, 100.0f);
 		ImGui::End();
 	}
 	
+	//Lighting bool window
+	static bool lighting = false;
+	ImGuiFunctions::ToggleButton(ImGui::Button("Lighting"), &lighting);
+	if (lighting)
+	{
+		ImGui::Begin("Lighting Settings", &lighting);
+		//Resizes slider
+		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.40f);
 
-	ImGui::SliderFloat("Wave Amplitude", &WaveSettings[0].y, 1.0f, 20.0f);
-	ImGui::SliderFloat("Wave Frequency: ", &WaveSettings[0].z, 1.0f, 20.0f);
-	ImGui::SliderFloat("Wave Speed: ", &WaveSettings[0].w, 1.0f, 20.0f);
-	//Smootheness
-	//Direction Vector
-	ImGui::SliderAngle("Wave Direction: ", &WaveDirection[0], 0.0f, 360.0f);
-	ImGui::SliderFloat("Wave Smoothness: ", &WaveSettings[0].x, 0.0f, 1.0f);
+		if (ImGui::CollapsingHeader("Directional Light"))
+		{
+			//This is temporal, will be changed to SliderAngle and calculate vectors on Shader from the angle inputed
+			ImGui::SliderFloat3("Directional Light Direction:", direction, -1.f, 1.f);
+			if (direction[0] == 0.0f)
+				direction[0] = 0.000001;
+			if (direction[1] == 0.0f)
+				direction[1] = 0.000001;
+
+			directionalLight->setDirection(direction[0], direction[1], direction[2]);
+			
+			ImGui::SliderFloat("Directional Light Intensity", &diff[0], 0.f, 100.f);
+			directionalLight->setDiffuseColour(diff[0], diff[0], diff[0], 1.f);
+
+			ImGui::SliderFloat3("Directional Light Position:", position, -50.f, 50.f);
+			directionalLight->setPosition(position[0], position[1], position[2]);
+		
+		}
+
+
+		ImGui::Separator();
+		
+
+		ImGui::SliderFloat3("Pointlight 1 Position:", pointPosition, -120.f, 120.f);
+		pointlight[0]->setPosition(pointPosition[0], pointPosition[1], pointPosition[2]);
+
+		ImGui::SliderFloat3("Pointlight Attenuation", att, 0.f, 1.f);
+
+
+		ImGui::SliderFloat3("Sphere position:", ballposition, -50.f, 50.f);
+
+		pointlight[0]->setAttenuationFactors(XMFLOAT3(att[0], att[1], att[2]));
+		ImGui::End();
+	}
+
+	//Postprocessing bool window
+	static bool postprocessing = false;
+	ImGuiFunctions::ToggleButton(ImGui::Button("Postprocessing"), &postprocessing);
+	if (postprocessing)
+	{
+		ImGui::Begin("Postprocessing Settings", &postprocessing);
+
+		ImGui::Text("Depth of Field");
+		ImGui::SliderFloat("Focus Range", &DepthFieldSettings.y, 0.f, 15.f);
+		ImGui::SliderFloat("Close plane", &DepthFieldSettings.z, 0.f, 15.f);
+		ImGui::SliderFloat("Far plane", &DepthFieldSettings.w, 1.f, 150.f);
+
+		ImGui::End();
+	}
+
+
+	ImGui::Checkbox("Grass", &renderGrass);
 	
-	ImGui::SliderFloat("Wave 2 Amplitude", &WaveSettings[1].y, 1.0f, 20.0f);
-	ImGui::SliderFloat("Wave 2 Frequency: ", &WaveSettings[1].z, 1.0f, 20.0f);
-	ImGui::SliderFloat("Wave 2 Speed: ", &WaveSettings[1].w, 1.0f, 20.0f);
-	//Smootheness
-	//Direction Vector
-	ImGui::SliderAngle("Wave 2 Direction: ", &WaveDirection[1], 0.0f, 360.0f);
-	ImGui::SliderFloat("Wave 2 Smoothness: ", &WaveSettings[1].x, 0.0f, 1.0f);
-
-
-	ImGui::SliderFloat("Wave 3 Amplitude", &WaveSettings[2].y, 1.0f, 20.0f);
-	ImGui::SliderFloat("Wave 3 Frequency: ", &WaveSettings[2].z, 1.0f, 20.0f);
-	ImGui::SliderFloat("Wave 3 Speed: ", &WaveSettings[2].w, 1.0f, 20.0f);
-	//Smootheness
-	//Direction Vector
-	ImGui::SliderAngle("Wave 3 Direction: ", &WaveDirection[2], 0.0f, 360.0f);
-	ImGui::SliderFloat("Wave 3 Smoothness: ", &WaveSettings[2].x, 0.0f, 1.0f);
-
-	ImGui::SliderFloat("Sea Level: ", &Sealevel, -10.0f, 10.0f);
-
-
-	ImGui::SliderFloat3("Directional light Direction:", direction, -1.f, 1.f);
-	directionalLight->setDirection(direction[0], direction[1], direction[2]);
-
-	ImGui::SliderFloat("Directional light intensity", &diff[0], 0.f, 100.f);
-	directionalLight->setDiffuseColour(diff[0], diff[0], diff[0], 1.f);
-
-
-	ImGui::SliderFloat3("light position:", pointPosition, -120.f, 120.f);
-	pointlight[0]->setPosition(pointPosition[0], pointPosition[1], pointPosition[2]);
-
-
-	ImGui::SliderFloat3("Ball position:", ballposition, -50.f, 50.f);
-
-
-	ImGui::SliderFloat3("Dir light pos:", position, -50.f, 50.f);
-	directionalLight->setPosition(position[0], position[1], position[2]);
-
-	ImGui::SliderFloat("Water Depth Scalar", &depthScalar, 0.f, 40.f);
-
-	ImGui::SliderFloat("Offset Depth", &waterOffset, 0.f, 15.f);
-
-
-	ImGui::SliderFloat("Distance Focus", &DepthFieldSettings.x, 0.f, 15.f);
-	ImGui::SliderFloat("Focus Range", &DepthFieldSettings.y, 0.f, 15.f);
-	ImGui::SliderFloat("Close plane", &DepthFieldSettings.z, 0.f, 15.f);
-	ImGui::SliderFloat("Far plane", &DepthFieldSettings.w, 1.f, 150.f);
-	
-	ImGui::SliderFloat3("AttFactors", att, 0.f, 1.f);
-	pointlight[0]->setAttenuationFactors(XMFLOAT3(att[0], att[1], att[2]));
 
 	
 	// Render UI

@@ -128,6 +128,9 @@
     <ClInclude Include="GeometryShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ImGuiFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\heightmapDepth_ds.hlsl">
