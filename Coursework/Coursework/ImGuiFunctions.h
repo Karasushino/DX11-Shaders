@@ -6,7 +6,6 @@ public:
 
 	static void ToggleButton(bool button, bool* boolean)
 	{
-
 		if (button)
 		{
 			switch (*boolean)

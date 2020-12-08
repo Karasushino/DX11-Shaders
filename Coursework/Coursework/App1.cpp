@@ -440,23 +440,28 @@ void App1::firstPass()
 	projectionMatrix = renderer->getProjectionMatrix();
 
 
-	
-	// Send geometry data, set shader parameters, render object with shader
-	planeMesh->sendData(renderer->getDeviceContext());
-	PlaneShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,TesellationFactor, textureMgr->getTexture(L"brick"), camera->getPosition(),
+	if (renderPlane)
+	{
+
+		// Send geometry data, set shader parameters, render object with shader
+		planeMesh->sendData(renderer->getDeviceContext());
+		PlaneShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,TesellationFactor, textureMgr->getTexture(L"brick"), camera->getPosition(),
 		amplitude, textureMgr->getTexture(L"height"), directionalLight, pointlight, depthmapDirectional->getDepthMapSRV(), pointlightDepthTextures,pointlightView);
 	
-	PlaneShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
+		PlaneShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
+	}
 
-
-	XMMATRIX waterWorldMatrix = worldMatrix * XMMatrixTranslation(0.0f, Sealevel, 0.0f);
-	waterPlaneMesh->sendData(renderer->getDeviceContext());
-	renderer->setAlphaBlending(1);
-	XMFLOAT2 tes = XMFLOAT2(TesellationFactor.x,TesellationFactor.y);
-	WaterShader->setShaderParameters(renderer->getDeviceContext(), waterWorldMatrix, viewMatrix, projectionMatrix, TesellationFactor, tes, camera->getPosition(),
+	if (renderWater)
+	{
+		XMMATRIX waterWorldMatrix = worldMatrix * XMMatrixTranslation(0.0f, Sealevel, 0.0f);
+		waterPlaneMesh->sendData(renderer->getDeviceContext());
+		renderer->setAlphaBlending(1);
+		XMFLOAT2 tes = XMFLOAT2(TesellationFactor.x,TesellationFactor.y);
+		WaterShader->setShaderParameters(renderer->getDeviceContext(), waterWorldMatrix, viewMatrix, projectionMatrix, TesellationFactor, tes, camera->getPosition(),
 		WaveSettings, textureMgr->getTexture(L"height"), WaveDirection, time, waterOffset,depthScalar,Sealevel,amplitude);
-	WaterShader->render(renderer->getDeviceContext(), waterPlaneMesh->getIndexCount());
-	renderer->setAlphaBlending(0);
+		WaterShader->render(renderer->getDeviceContext(), waterPlaneMesh->getIndexCount());
+		renderer->setAlphaBlending(0);
+	}
 
 	
 	//Debuging window
@@ -673,15 +678,16 @@ void App1::gui()
 	ImGui::EndMainMenuBar();
 
 
-	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.45f);
+	
 
 	ImGui::Checkbox("Wireframe mode", &wireframeToggle);
 
+	
 	//Water bool
 	static bool mizu = false;
-	ImGuiFunctions::ToggleButton(ImGui::Button("Water"), &mizu);
+	ImGuiFunctions::ToggleButton(ImGui::Button("Water", ImVec2(ImGui::GetWindowSize().x * 0.65f, 0.0f)), &mizu);
 	ImGui::SameLine();
-	ImGui::Checkbox("", &mizu);
+	ImGui::Checkbox("", &renderWater);
 	// Water settings window
 	if (mizu)
 	{
@@ -747,7 +753,9 @@ void App1::gui()
 	
 	//Terrain bool window
 	static bool terrain = false;
-	ImGuiFunctions::ToggleButton(ImGui::Button("Terrain"), &terrain);
+	ImGuiFunctions::ToggleButton(ImGui::Button("Terrain",ImVec2(ImGui::GetWindowSize().x * 0.65f, 0.0f)), &terrain);
+	ImGui::SameLine();
+	ImGui::Checkbox(" ", &renderPlane);
 	if (terrain)
 	{
 		ImGui::Begin("Terrain Settings", &terrain);
@@ -769,7 +777,7 @@ void App1::gui()
 	
 	//Lighting bool window
 	static bool lighting = false;
-	ImGuiFunctions::ToggleButton(ImGui::Button("Lighting"), &lighting);
+	ImGuiFunctions::ToggleButton(ImGui::Button("Lighting",ImVec2(ImGui::GetWindowSize().x * 0.65f, 0.0f)), &lighting);
 	if (lighting)
 	{
 		ImGui::Begin("Lighting Settings", &lighting);
@@ -813,7 +821,7 @@ void App1::gui()
 
 	//Postprocessing bool window
 	static bool postprocessing = false;
-	ImGuiFunctions::ToggleButton(ImGui::Button("Postprocessing"), &postprocessing);
+	ImGuiFunctions::ToggleButton(ImGui::Button("Postprocessing", ImVec2(ImGui::GetWindowSize().x * 0.65f, 0.0f)), &postprocessing);
 	if (postprocessing)
 	{
 		ImGui::Begin("Postprocessing Settings", &postprocessing);

@@ -120,8 +120,11 @@ private:
 	//Amplitude of terrain, height of terrain. Scalar for heightmap data.
 	float amplitude;
 
+	//Render flags to render objects of the scene or not do so.
 	bool renderGrass = true;
-	
+	bool renderWater = true;
+	bool renderPlane = true;
+
 
 	/*x = Peakness(How sharp the wave is (not amplitude))
 	  y = amplitude
