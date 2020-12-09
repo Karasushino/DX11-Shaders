@@ -121,9 +121,6 @@ private:
 
 
 
-	//Parameters to adjust Tessellation manually.
-	XMFLOAT4 TesellationFactor;
-
 	//Amplitude of terrain, height of terrain. Scalar for heightmap data.
 	float amplitude;
 
@@ -208,7 +205,7 @@ private:
 	const static int numberOfPointlights = 1;
 
 	//Position of dir light
-	float position[3] = {50.f,15.f,50.f};
+	float position[3] = {50.f,50.f,50.f};
 
 
 	//Position of dir light
@@ -246,11 +243,18 @@ private:
 	#pragma endregion
 	float att[3] = { 1.f, 0.175f, 0.0f };
 
-
+	//Water tessellation factors
 	float tessellationFactor = 5.f;
 	float dynamicTessellationFactor = 3.f;
 	bool dynamicTessellationToggle = false;
 	float dystanceScalar = 100.f;
+
+
+	//Terrain tessellation factors
+	float terrainTessellationFactor = 5.f;
+	float terrainDynamicTessellationFactor = 3.f;
+	bool terrainDynamicTessellationToggle = false;
+	float terrainDystanceScalar = 100.f;
 
 	float deepColor[4] = { 0.13f, 0.13f, 0.8f, 0.6f };
 	float shallowColor[4] = { 0.1f, 0.9f, 0.9f, 0.2f };
@@ -267,15 +271,16 @@ private:
 	float grassWidth = 0.5f;
 	float windStrength = 1.5f;
 	float windFrequency = 0.05f;
+	float grassSpawnThreshold = 0.7f;
 
 	bool wireframe = false;
 
 	float textureTiling = 1.f;
 	
-	const char* heightmapsLabel[2] = { "Heightmap 1", "Heightmap 2"};
+	const char* heightmapsLabel[3] = { "Heightmap 1", "Clift","Coast" };
 	int selectedHeightmap = 0;
 
-	const char* textureLabel[2] = { "Moss", "Bunny" };
+	const char* textureLabel[3] = { "Moss", "Clift", "Coast" };
 	int selectedTexture = 0;
 
 

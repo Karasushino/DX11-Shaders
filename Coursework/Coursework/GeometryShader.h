@@ -26,7 +26,8 @@ public:
 		float windStrength;
 
 		float frequency;
-		XMFLOAT3 padding;
+		float spawnTreshold;
+		XMFLOAT2 padding;
 	};
 
 	struct HeightmapBufferType
@@ -74,7 +75,7 @@ public:
 
 	void setPixelShaderParameters(ID3D11DeviceContext* deviceContext, float bottomColor[4], float topColor[4]);
 
-	void setGeometryShaderParameters(ID3D11DeviceContext* deviceContext, float maxHeight, float width, float windStrength, float frequency, float time);
+	void setGeometryShaderParameters(ID3D11DeviceContext* deviceContext, float maxHeight, float width, float windStrength, float frequency, float time, float spawnTreshold);
 
 private:
 	void initShader(const wchar_t* vsFilename, const wchar_t* psFilename);

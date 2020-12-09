@@ -55,9 +55,6 @@ void HeightmapShader::initShader(const wchar_t* vsFilename, const wchar_t* psFil
 	renderer->CreateBuffer(&lightMatrixBufferDesc, NULL, &lightMatrixBuffer);
 	
 
-	// Setup the description of the dynamic matrix constant buffer that is in the hull shader.
-	D3D11_BUFFER_DESC hullBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(HullBufferType));
-	renderer->CreateBuffer(&hullBufferDesc, NULL, &hullBuffer);
 
 
 
@@ -87,6 +84,9 @@ void HeightmapShader::initShader(const wchar_t* vsFilename, const wchar_t* psFil
 	D3D11_BUFFER_DESC tilingDesc = BufferHelpers::CreateBufferDescription(sizeof(TilingBufferType));
 	renderer->CreateBuffer(&tilingDesc, NULL, &tilingBuffer);
 
+	// Setup the description of the buffer to set the tessellation parameters in hull shader.
+		D3D11_BUFFER_DESC tessellationDesc = BufferHelpers::CreateBufferDescription(sizeof(TessellationBufferType));
+	renderer->CreateBuffer(&tessellationDesc, NULL, &tessellationBuffer);
 
 }
 
@@ -101,12 +101,9 @@ void HeightmapShader::initShader(const wchar_t* vsFilename, const wchar_t* hsFil
 }
 
 
-void HeightmapShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
-	XMFLOAT4 TessellationFactor, ID3D11ShaderResourceView* texture, XMFLOAT3 CameraPosInput, float InputAmplitude, ID3D11ShaderResourceView* heightmapTexture, Light* directionalLight,
+void HeightmapShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* texture, XMFLOAT3 CameraPosInput, float InputAmplitude, ID3D11ShaderResourceView* heightmapTexture, Light* directionalLight,
 	Light* pointlight[], ID3D11ShaderResourceView* directionalDepthTex, ID3D11ShaderResourceView* pointDepthTex[], XMMATRIX pointlightViewMatrix[], float tiling)
 {
-	HRESULT result;
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
 
 	// Transpose the matrices to prepare them for the shader.
 	XMMATRIX tworld = XMMatrixTranspose(worldMatrix);
@@ -123,20 +120,12 @@ void HeightmapShader::setShaderParameters(ID3D11DeviceContext* deviceContext, co
 	deviceContext->Unmap(matrixBuffer, 0);
 	deviceContext->DSSetConstantBuffers(0, 1, &matrixBuffer);
 
-	//Hull buffers
-	// Lock the constant buffer so it can be written to.
-	result = deviceContext->Map(hullBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	HullBufferType* HullPtr = (HullBufferType*)mappedResource.pData;
-	HullPtr->TessellationFactor = TessellationFactor;
-	deviceContext->Unmap(hullBuffer, 0);
-	deviceContext->HSSetConstantBuffers(0,1,&hullBuffer);
-
 
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	CameraBufferType* CamPtr = (CameraBufferType*)mappedResource.pData;
 	CamPtr->cameraPosition = CameraPosInput;
-	CamPtr->padding = 1.0f;
+	CamPtr->padding = 0.f;
 	deviceContext->Unmap(cameraBuffer, 0);
 	deviceContext->HSSetConstantBuffers(1, 1, &cameraBuffer);
 
@@ -240,6 +229,22 @@ void HeightmapShader::setShaderParameters(ID3D11DeviceContext* deviceContext, co
 	deviceContext->PSSetSamplers(0, 1, &sampleState);
 	deviceContext->PSSetSamplers(1, 1, &sampleStateShadow);
 
+
+}
+
+void HeightmapShader::setHullShaderParameters(ID3D11DeviceContext* deviceContext, float tessellationFactor, float dynamicTessellationFactor, bool dynmaicTesellationToggle, float distanceScalar)
+{
+	//Hull buffers
+	// Lock the constant buffer so it can be written to.
+	result = deviceContext->Map(tessellationBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	TessellationBufferType* tessPtr = (TessellationBufferType*)mappedResource.pData;
+	tessPtr->distanceScalar = distanceScalar;
+	tessPtr->dynamicTessellationFactor = dynamicTessellationFactor;
+	tessPtr->dynmaicTesellationToggle = dynmaicTesellationToggle;
+	tessPtr->tessellationFactor = tessellationFactor;
+
+	deviceContext->Unmap(tessellationBuffer, 0);
+	deviceContext->HSSetConstantBuffers(0, 1, &tessellationBuffer);
 
 }
 

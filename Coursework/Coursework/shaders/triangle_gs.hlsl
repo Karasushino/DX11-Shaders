@@ -22,7 +22,8 @@ cbuffer GrassBuffer : register(b1)
     float windStrength;
     
     float frequency;
-    float3 padding;
+    float spawnTreshold;
+    float2 padding;
 };
 
 struct InputType
@@ -212,7 +213,6 @@ void main(triangle InputType input[3], inout TriangleStream<OutputType> triStrea
     ////Draw the grass blade on the vertex. With a random value later we can edit if it spawns or not
     //if (maxAngleToSpawnGrass > slopeAngle)
     float grassNoiseSpawn = grassSpawnTexture.SampleLevel(Sampler0, input[0].tex, 0);
-    float spawnTreshold = 0.7f;
     
     if (grassNoiseSpawn < spawnTreshold)
         drawGrassBlade(output, input, triStream);

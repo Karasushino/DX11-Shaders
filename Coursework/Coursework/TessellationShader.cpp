@@ -126,8 +126,7 @@ void TessellationShader::setPixelShaderParameters(ID3D11DeviceContext* deviceCon
 
 
 void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
-	XMFLOAT4 EdgeTesellation, XMFLOAT2 InsideTesellation, XMFLOAT3 CameraPosInput, XMFLOAT4 InputWaveSettings[],
-	float InputWaveDirection[], float time)
+	 XMFLOAT3 CameraPosInput, XMFLOAT4 InputWaveSettings[],float InputWaveDirection[], float time)
 {
 	
 

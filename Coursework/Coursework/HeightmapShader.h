@@ -34,9 +34,6 @@ public:
 		XMMATRIX pointlightView[numberOfPointlights*6];
 	};
 
-	struct HullBufferType {
-		XMFLOAT4 TessellationFactor;
-	};
 
 	struct CameraBufferType
 	{
@@ -72,19 +69,35 @@ public:
 	};
 
 
+	struct TessellationBufferType {
+		float tessellationFactor;
+		float dynamicTessellationFactor;
+		int dynmaicTesellationToggle;
+		float distanceScalar;
+	};
+
+
+
 	HeightmapShader(ID3D11Device* device, HWND hwnd);
 	~HeightmapShader();
 
 	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &world, const XMMATRIX &view, const XMMATRIX &projection,
-		XMFLOAT4 TesselationFactor, ID3D11ShaderResourceView* texture, XMFLOAT3 CameraPosInput, float amplitude, ID3D11ShaderResourceView* heightmapTexture,
+  ID3D11ShaderResourceView* texture, XMFLOAT3 CameraPosInput, float amplitude, ID3D11ShaderResourceView* heightmapTexture,
 		Light* directionalLight,Light* pointlight[], ID3D11ShaderResourceView* directionalDepthTex, ID3D11ShaderResourceView* pointDepthTex[],XMMATRIX pointlightViewMatrix[],
 		float tiling);
+
+	void setHullShaderParameters(ID3D11DeviceContext* deviceContext, float tessellationFactor, float dynamicTessellationFactor, bool dynmaicTesellationToggle, float distanceScalar);
+
 
 private:
 	void initShader(const wchar_t* vsFilename, const wchar_t* psFilename);
 	void initShader(const wchar_t* vsFilename, const wchar_t* hsFilename, const wchar_t* dsFilename, const wchar_t* psFilename);
 
 private:
+
+	HRESULT result;
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+
 	ID3D11Buffer* matrixBuffer;
 	ID3D11Buffer* lightMatrixBuffer;
 
@@ -94,6 +107,7 @@ private:
 	ID3D11Buffer* dirLightBuffer;
 	ID3D11Buffer* pointLightBuffer;
 
+	ID3D11Buffer* tessellationBuffer;
 
 	ID3D11Buffer* tilingBuffer;
 

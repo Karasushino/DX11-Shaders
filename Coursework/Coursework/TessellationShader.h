@@ -59,8 +59,7 @@ public:
 		float shallowColor[4], ID3D11ShaderResourceView* heightTexture);
 
 	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
-		XMFLOAT4 EdgeTesellation, XMFLOAT2 InsideTesellation, XMFLOAT3 CameraPosInput, XMFLOAT4 InputWaveSettings[],
-		float direction[], float time);
+		XMFLOAT3 CameraPosInput, XMFLOAT4 InputWaveSettings[],float direction[], float time);
 
 	
 

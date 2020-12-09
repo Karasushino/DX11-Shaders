@@ -113,11 +113,17 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	//EdgeTesellation = XMFLOAT4(1.0f, 1.0f, 1.0f,1.0f);
 	//InsideTesellation = XMFLOAT2(1.0f, 1.0f);
 
+	textureMgr->loadTexture(L"CliftTexture", L"res/cliftsTexture.jpg");
+	textureMgr->loadTexture(L"CliftHeight", L"res/cliftsheight.jpg");
+	textureMgr->loadTexture(L"CoastTexture", L"res/coastTexture.jpg");
+	textureMgr->loadTexture(L"CoastHeight", L"res/coastheight.jpg");
+
+
 	textureMgr->loadTexture(L"WindMap", L"res/WaterDistortion.png");
 	textureMgr->loadTexture(L"moss", L"res/Moss0.jpg");
-	textureMgr->loadTexture(L"Bunny", L"res/bunny.png");
+	
 	textureMgr->loadTexture(L"height", L"res/height.jpg");
-	textureMgr->loadTexture(L"height2", L"res/height.png");
+
 	textureMgr->loadTexture(L"water", L"res/water.jpg");
 	textureMgr->loadTexture(L"Noise", L"res/noise.jpg");
 	textureMgr->loadTexture(L"GrassSpawn", L"res/grassNoise.jpg");
@@ -134,7 +140,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	directionalLight->setAmbientColour(0.35f, 0.35f, 0.35f, 1.0f);
 	directionalLight->setDiffuseColour(1.0f, 1.0f, 1.0f, 1.0f);
 	directionalLight->setDirection(0.7f, -0.7f, 0.f);
-	directionalLight->setPosition(50.f, 15.f, 50.f);
+	directionalLight->setPosition(50.f, 50.f, 50.f);
 	directionalLight->generateViewMatrix();
 	directionalLight->generateOrthoMatrix((float)sceneWidth, (float)sceneHeight, 2.f, 100.f);
 
@@ -181,7 +187,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	for (int i = 0; i < 3; i++)
 	{
 		WaveSettings[i].x = 0.6f;
-		WaveSettings[i].y = 1.f;
+		WaveSettings[i].y = 0.4f;
 		WaveSettings[i].w = 1.f;
 		WaveSettings[i].z = 8.f;
 		WaveDirection[i] = 30.f;
@@ -240,7 +246,11 @@ ID3D11ShaderResourceView* App1::getTerrainHeigthmap()
 		break;
 
 	case 1:
-		heightmap = textureMgr->getTexture(L"height2");
+		heightmap = textureMgr->getTexture(L"CliftHeight");
+		break;
+
+	case 2:
+		heightmap = textureMgr->getTexture(L"CoastHeight");
 		break;
 	default:
 		break;
@@ -260,7 +270,10 @@ ID3D11ShaderResourceView* App1::getTerrainTexture()
 		break;
 
 	case 1:
-		texture = textureMgr->getTexture(L"Bunny");
+		texture = textureMgr->getTexture(L"CliftTexture");
+		break;
+	case 2:
+		texture = textureMgr->getTexture(L"CoastTexture");
 		break;
 	default:
 		break;
@@ -490,9 +503,10 @@ void App1::firstPass()
 
 		// Send geometry data, set shader parameters, render object with shader
 		planeMesh->sendData(renderer->getDeviceContext());
-		PlaneShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,TesellationFactor, getTerrainTexture(), camera->getPosition(),
+		PlaneShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, getTerrainTexture(), camera->getPosition(),
 		amplitude, getTerrainHeigthmap(), directionalLight, pointlight, depthmapDirectional->getDepthMapSRV(), pointlightDepthTextures,pointlightView,textureTiling);
-	
+		PlaneShader->setHullShaderParameters(renderer->getDeviceContext(), terrainTessellationFactor, terrainDynamicTessellationFactor,
+			terrainDynamicTessellationToggle, terrainDystanceScalar);
 		PlaneShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
 	}
 
@@ -506,7 +520,7 @@ void App1::firstPass()
 
 		grassShader->setPixelShaderParameters(renderer->getDeviceContext(), bottomGrassColor, topGrassColor);
 		grassShader->setHullshaderParameters(renderer->getDeviceContext(), grassDensity);
-		grassShader->setGeometryShaderParameters(renderer->getDeviceContext(), grassMaxHeight, grassWidth, windStrength, windFrequency, time);
+		grassShader->setGeometryShaderParameters(renderer->getDeviceContext(), grassMaxHeight, grassWidth, windStrength, windFrequency, time,grassSpawnThreshold);
 
 
 		grassShader->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
@@ -518,8 +532,7 @@ void App1::firstPass()
 		XMMATRIX waterWorldMatrix = worldMatrix * XMMatrixTranslation(0.0f, Sealevel, 0.0f);
 		waterPlaneMesh->sendData(renderer->getDeviceContext());
 		renderer->setAlphaBlending(1);
-		XMFLOAT2 tes = XMFLOAT2(TesellationFactor.x,TesellationFactor.y);
-		WaterShader->setShaderParameters(renderer->getDeviceContext(), waterWorldMatrix, viewMatrix, projectionMatrix, TesellationFactor, tes, camera->getPosition(),
+		WaterShader->setShaderParameters(renderer->getDeviceContext(), waterWorldMatrix, viewMatrix, projectionMatrix, camera->getPosition(),
 		WaveSettings, WaveDirection, time);
 		WaterShader->setPixelShaderParameters(renderer->getDeviceContext(), waterOffset, depthScalar, Sealevel, amplitude, deepColor,shallowColor, getTerrainHeigthmap());
 		WaterShader->setHullShaderParameters(renderer->getDeviceContext(), tessellationFactor, dynamicTessellationFactor,
@@ -773,7 +786,7 @@ void App1::gui()
 		//Header for the settings of Wave 1
 		if(ImGui::CollapsingHeader("Wave 1 Settings"))
 		{
-			ImGui::SliderFloat("Wave Amplitude", &WaveSettings[0].y, 1.0f, 20.0f);
+			ImGui::SliderFloat("Wave Amplitude", &WaveSettings[0].y, 0.1f, 2.0f);
 			ImGui::SliderFloat("Wave Frequency: ", &WaveSettings[0].z, 1.0f, 20.0f);
 			ImGui::SliderFloat("Wave Speed: ", &WaveSettings[0].w, 1.0f, 20.0f);
 			//Smootheness
@@ -786,7 +799,7 @@ void App1::gui()
 		//Header for the settings of Wave 2
 		if (ImGui::CollapsingHeader("Wave 2 Settings"))
 		{
-			ImGui::SliderFloat("Wave 2 Amplitude", &WaveSettings[1].y, 1.0f, 20.0f);
+			ImGui::SliderFloat("Wave 2 Amplitude", &WaveSettings[1].y, 0.1f, 2.0f);
 			ImGui::SliderFloat("Wave 2 Frequency: ", &WaveSettings[1].z, 1.0f, 20.0f);
 			ImGui::SliderFloat("Wave 2 Speed: ", &WaveSettings[1].w, 1.0f, 20.0f);
 			//Smootheness
@@ -801,7 +814,7 @@ void App1::gui()
 		if (ImGui::CollapsingHeader("Wave 3 Settings"))
 		{
 			
-			ImGui::SliderFloat("Wave 3 Amplitude", &WaveSettings[2].y, 1.0f, 20.0f);
+			ImGui::SliderFloat("Wave 3 Amplitude", &WaveSettings[2].y, 0.1f, 2.0f);
 			ImGui::SliderFloat("Wave 3 Frequency: ", &WaveSettings[2].z, 1.0f, 20.0f);
 			ImGui::SliderFloat("Wave 3 Speed: ", &WaveSettings[2].w, 1.0f, 20.0f);
 			//Smootheness
@@ -902,11 +915,26 @@ void App1::gui()
 
 		//Resizes slider
 		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.40f);
-		
-		ImGui::SliderFloat("Tiling Factor", &textureTiling, 1.0f, 25.0f);
-		ImGui::SliderFloat("Tessellation Factor", &TesellationFactor.x, 1.0f, 25.0f);
-
 		ImGui::SliderFloat("Amplitude Heightmap", &amplitude, 1.0f, 100.0f);
+
+		ImGui::SliderFloat("Tiling Factor", &textureTiling, 1.0f, 25.0f);
+
+		//Header for the settings of water tessellation
+		if (ImGui::CollapsingHeader("Terrain Tessellation"))
+		{
+			ImGui::Checkbox("Dynamic Tessellation##1", &terrainDynamicTessellationToggle);
+			if (terrainDynamicTessellationToggle)
+			{
+				ImGui::SliderFloat("Dynamic Factor##1", &terrainDynamicTessellationFactor, 0, 15);
+				ImGui::SliderFloat("Distance Scalar##1", &terrainDystanceScalar, 1, 150);
+			}
+			else
+				ImGui::SliderFloat("Tessellation Factor##1", &terrainTessellationFactor, 0, 25);
+
+			//ImGui::SliderFloat("Tessellation Factor", &TesellationFactor.x, 1.0f, 25.0f);
+
+		}
+
 		ImGui::End();
 	}
 	
@@ -1019,10 +1047,15 @@ void App1::gui()
 		ImGui::ColorEdit4("Top Grass Color", topGrassColor, ImGuiColorEditFlags_NoInputs);
 		ImGui::Separator();
 		ImGui::SliderFloat("Grass Density", &grassDensity,1,20);
+		ImGui::SameLine();
+		ImGuiFunctions::QuestionmarkTooltip("Changes the tessellation of the place thus increasing the number of vertex where to spawn grass.");
 		ImGui::SliderFloat("Grass Max Height", &grassMaxHeight, 1, 4);
 		ImGui::SliderFloat("Grass Width", &grassWidth, 0.2f, 5);
 		ImGui::SliderFloat("Wind Strength", &windStrength, 1, 3);
 		ImGui::SliderFloat("Wind Frequency", &windFrequency, 0.f, 0.2f);
+		ImGui::SliderFloat("Grass Spawn Threshold", &grassSpawnThreshold, 0.f, 1.f); 
+		ImGui::SameLine();
+		ImGuiFunctions::QuestionmarkTooltip("The number that will be compared against the sampled noise texture in the shader. Higher value is more grass.");
 
 		ImGui::End();
 

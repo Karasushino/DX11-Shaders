@@ -203,7 +203,7 @@ void GeometryShader::setPixelShaderParameters(ID3D11DeviceContext* deviceContext
 
 }
 
-void GeometryShader::setGeometryShaderParameters(ID3D11DeviceContext* deviceContext, float maxHeight, float width, float windStrength, float frequency,float time)
+void GeometryShader::setGeometryShaderParameters(ID3D11DeviceContext* deviceContext, float maxHeight, float width, float windStrength, float frequency,float time, float spawnTreshold)
 {
 	//Set grass buffer
 	GrassBufferType* grassPtr;
@@ -216,7 +216,8 @@ void GeometryShader::setGeometryShaderParameters(ID3D11DeviceContext* deviceCont
 	grassPtr->windStrength = windStrength;
 
 	grassPtr->time = time;// worldMatrix;
-	grassPtr->padding = XMFLOAT3(0, 0, 0);
+	grassPtr->spawnTreshold = spawnTreshold;
+	grassPtr->padding = XMFLOAT2(0, 0);
 	deviceContext->Unmap(grassBuffer, 0);
 	deviceContext->GSSetConstantBuffers(1, 1, &grassBuffer);
 	
