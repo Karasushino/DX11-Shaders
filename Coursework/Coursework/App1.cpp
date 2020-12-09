@@ -825,21 +825,24 @@ void App1::gui()
 		//Resizes slider
 		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.40f);
 
-		static bool dirlightOff = false;
+		static bool dirlight = true;
 		static bool pointlightsOff = false;
-		ImGui::Checkbox("Toggle Dir Light", &dirlightOff);
-		if (dirlightOff)
+		ImGui::ColorEdit4("Ambient Light Color", ambientLight, ImGuiColorEditFlags_NoInputs);
+		ImGui::Checkbox("Directional Light", &dirlight);
+		directionalLight->setAmbientColour(ambientLight[0], ambientLight[1], ambientLight[2], ambientLight[3]);
+
+
+		if (!dirlight)
 			directionalLight->setDiffuseColour(0, 0, 0, 1.f);
 		else
 			directionalLight->setDiffuseColour(directionalDiffuse[0], directionalDiffuse[1], directionalDiffuse[2], 1.f);
 
-		if (ImGui::CollapsingHeader("Directional Light"))
+		if (ImGui::CollapsingHeader("Directional Light Settings"))
 		{
 			//Lighting bool window
-			
 			ImGui::ColorEdit4("Directional Diffuse", directionalDiffuse, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 
-			if(!dirlightOff)
+			if(dirlight)
 			directionalLight->setDiffuseColour(directionalDiffuse[0], directionalDiffuse[1], directionalDiffuse[2], 1.f);
 
 			directionalLight->setDirection(direction[0], direction[1], direction[2]);

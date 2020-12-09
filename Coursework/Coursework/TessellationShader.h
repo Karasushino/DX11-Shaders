@@ -17,7 +17,7 @@ public:
 	struct HullBufferType {
 		float tessellationFactor;
 		float dynamicTessellationFactor;
-		bool dynmaicTesellationToggle;
+		int dynmaicTesellationToggle;
 		float distanceScalar;
 	};
 

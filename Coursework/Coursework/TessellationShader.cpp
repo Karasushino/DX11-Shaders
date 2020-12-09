@@ -88,7 +88,7 @@ void TessellationShader::setHullShaderParameters(ID3D11DeviceContext* deviceCont
 	HullBufferType* HullPtr = (HullBufferType*)mappedResource.pData;
 	HullPtr->distanceScalar = distanceScalar;
 	HullPtr->dynamicTessellationFactor = dynamicTessellationFactor;
-	HullPtr->dynmaicTesellationToggle = dynamicTessellationFactor;
+	HullPtr->dynmaicTesellationToggle = dynmaicTesellationToggle;
 	HullPtr->tessellationFactor = tessellationFactor;
 	deviceContext->Unmap(hullBuffer, 0);
 	deviceContext->HSSetConstantBuffers(0, 1, &hullBuffer);

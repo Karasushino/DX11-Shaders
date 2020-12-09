@@ -5,7 +5,7 @@ cbuffer HullBuffer : register(b0)
 {
     float tessellationFactor;
     float dynamicTessellationFactor;
-    bool dynmaicTesellationToggle;
+    int dynmaicTesellationToggle;
     float distanceScalar;
 }
 cbuffer HullCameraBuffer : register(b1)
@@ -41,7 +41,7 @@ ConstantOutputType PatchConstantFunction(InputPatch<InputType, 4> inputPatch, ui
     
 
     
-    if (dynmaicTesellationToggle)
+    if (dynmaicTesellationToggle == 1)
     {
         
         //Get the middle point of the patch points
@@ -61,7 +61,17 @@ ConstantOutputType PatchConstantFunction(InputPatch<InputType, 4> inputPatch, ui
         output.inside[0] = clamp(distanceScalar / distanceFromPlane * dynamicTessellationFactor, 1, 64);
         output.inside[1] = clamp(distanceScalar / distanceFromPlane * dynamicTessellationFactor, 1, 64);
     }
-   
+    else
+    {
+        output.edges[0] = clamp(tessellationFactor, 1, 64);
+        output.edges[1] = clamp(tessellationFactor, 1, 64);
+        output.edges[2] = clamp(tessellationFactor, 1, 64);
+        output.edges[3] = clamp(tessellationFactor, 1, 64);
+
+        // Set the tessellation factor for tessallating inside the triangle.
+        output.inside[0] = clamp(tessellationFactor, 1, 64);
+        output.inside[1] = clamp(tessellationFactor, 1, 64);
+    }
     
 
     return output;

@@ -248,6 +248,7 @@ private:
 	float deepColor[4] = { 0.13f, 0.13f, 0.8f, 0.6f };
 	float shallowColor[4] = { 0.1f, 0.9f, 0.9f, 0.2f };
 
+	float ambientLight[4] = { 0.35f, 0.35f, 0.35f, 1.0f };
 
 	bool wireframe = false;
 	HeightmapShader::CameraBufferType a;
