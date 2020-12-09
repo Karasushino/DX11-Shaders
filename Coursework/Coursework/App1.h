@@ -245,6 +245,9 @@ private:
 	bool dynamicTessellationToggle = false;
 	float dystanceScalar = 100.f;
 
+	float deepColor[4] = { 0.13f, 0.13f, 0.8f, 0.6f };
+	float shallowColor[4] = { 0.1f, 0.9f, 0.9f, 0.2f };
+
 
 	bool wireframe = false;
 	HeightmapShader::CameraBufferType a;

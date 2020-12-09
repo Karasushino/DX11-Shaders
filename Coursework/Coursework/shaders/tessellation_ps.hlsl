@@ -10,6 +10,11 @@ cbuffer WaterBuffer : register(b1)
     float depthScalar;
 };
 
+cbuffer WaterColorBuffer : register(b2)
+{
+    float4 deepColor;
+    float4 shallowColor;
+}
 
 struct InputType
 {
@@ -33,8 +38,8 @@ float4 main(InputType input) : SV_TARGET
     
     float waterLevel = input.worldPosition.y - height - offsetLevel;
     
-    float4 deepColor = float4(0.13f, 0.13f, 0.8f, 0.6f);
-    float4 shallowColor = float4(0.1f, 0.9f, 0.9f, 0.2f);
+  //  float4 deepColor = float4(0.13f, 0.13f, 0.8f, 0.6f);
+   // float4 shallowColor = float4(0.1f, 0.9f, 0.9f, 0.2f);
     
     
 	// Sample the pixel color from the texture using the sampler at this texture coordinate location.

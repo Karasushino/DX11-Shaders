@@ -39,66 +39,33 @@ void TessellationShader::initShader(const wchar_t* vsFilename, const wchar_t* ps
 	loadPixelShader(psFilename);
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	D3D11_BUFFER_DESC matrixBufferDesc;
-	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
-	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	matrixBufferDesc.MiscFlags = 0;
-	matrixBufferDesc.StructureByteStride = 0;
-
+	D3D11_BUFFER_DESC matrixBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(MatrixBufferType));
 	renderer->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
 
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	D3D11_BUFFER_DESC hullBufferDesc;
-	hullBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	hullBufferDesc.ByteWidth = sizeof(HullBufferType);
-	hullBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	hullBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	hullBufferDesc.MiscFlags = 0;
-	hullBufferDesc.StructureByteStride = 0;
-
-
+	D3D11_BUFFER_DESC hullBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(HullBufferType));
 	renderer->CreateBuffer(&hullBufferDesc, NULL, &hullBuffer);
 
 
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	D3D11_BUFFER_DESC cameraBufferDesc;
-	cameraBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	cameraBufferDesc.ByteWidth = sizeof(CameraBufferType);
-	cameraBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cameraBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	cameraBufferDesc.MiscFlags = 0;
-	cameraBufferDesc.StructureByteStride = 0;
-
-
+	D3D11_BUFFER_DESC cameraBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(CameraBufferType));
 	renderer->CreateBuffer(&cameraBufferDesc, NULL, &cameraBuffer);
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	D3D11_BUFFER_DESC heightmapBufferDesc;
-	heightmapBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	heightmapBufferDesc.ByteWidth = sizeof(SeaBufferType);
-	heightmapBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	heightmapBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	heightmapBufferDesc.MiscFlags = 0;
-	heightmapBufferDesc.StructureByteStride = 0;
-
-
-	renderer->CreateBuffer(&heightmapBufferDesc, NULL, &SeaBuffer);
+	D3D11_BUFFER_DESC SeaBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(SeaBufferType));
+	renderer->CreateBuffer(&SeaBufferDesc, NULL, &SeaBuffer);
 
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	D3D11_BUFFER_DESC waterBufferDesc;
-	waterBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	waterBufferDesc.ByteWidth = sizeof(WaterBufferType);
-	waterBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	waterBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	waterBufferDesc.MiscFlags = 0;
-	waterBufferDesc.StructureByteStride = 0;
-	
+	D3D11_BUFFER_DESC waterBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(WaterBufferType));
 	renderer->CreateBuffer(&waterBufferDesc, NULL, &WaterBuffer);
+
+	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	D3D11_BUFFER_DESC waterColorBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(WaterColorBufferType));
+	renderer->CreateBuffer(&waterColorBufferDesc, NULL, &WaterColorBuffer);
+
 
 
 }
@@ -127,11 +94,40 @@ void TessellationShader::setHullShaderParameters(ID3D11DeviceContext* deviceCont
 	deviceContext->HSSetConstantBuffers(0, 1, &hullBuffer);
 }
 
+void TessellationShader::setPixelShaderParameters(ID3D11DeviceContext* deviceContext, float waterOffset, float depthScalar, float Sealevel, float amplitude, float deepColor[4],
+	float shallowColor[4], ID3D11ShaderResourceView* heightTexture)
+{
+	result = deviceContext->Map(WaterBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	WaterBufferType* waterPtr = (WaterBufferType*)mappedResource.pData;
+
+	waterPtr->heightmapAmplitude = amplitude;
+	waterPtr->waterPlaneHeight = Sealevel;
+	waterPtr->offsett = waterOffset;
+	waterPtr->depthScalar = depthScalar;
+
+	deviceContext->Unmap(WaterBuffer, 0);
+
+
+	result = deviceContext->Map(WaterColorBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	WaterColorBufferType* waterColorPtr = (WaterColorBufferType*)mappedResource.pData;
+
+	waterColorPtr->deepColor = XMFLOAT4(deepColor[0], deepColor[1], deepColor[2], deepColor[3]);
+	waterColorPtr->shallowColor = XMFLOAT4(shallowColor[0], shallowColor[1], shallowColor[2], shallowColor[3]);
+	
+	deviceContext->Unmap(WaterColorBuffer, 0);
+
+
+	deviceContext->PSSetConstantBuffers(1, 1, &WaterBuffer);
+	deviceContext->PSSetConstantBuffers(2, 1, &WaterColorBuffer);
+
+	deviceContext->PSSetShaderResources(1, 1, &heightTexture);
+}
+
 
 
 void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
-	XMFLOAT4 EdgeTesellation, XMFLOAT2 InsideTesellation, XMFLOAT3 CameraPosInput, XMFLOAT4 InputWaveSettings[], ID3D11ShaderResourceView* texture,
-	float InputWaveDirection[], float time, float waterOffset,float depthScalar, float Sealevel, float amplitude)
+	XMFLOAT4 EdgeTesellation, XMFLOAT2 InsideTesellation, XMFLOAT3 CameraPosInput, XMFLOAT4 InputWaveSettings[],
+	float InputWaveDirection[], float time)
 {
 	
 
@@ -151,7 +147,6 @@ void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 
 
 	
-
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	CameraBufferType* CamPtr = (CameraBufferType*)mappedResource.pData;
@@ -174,24 +169,7 @@ void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 	deviceContext->Unmap(SeaBuffer, 0);
 	deviceContext->DSSetConstantBuffers(1, 1, &SeaBuffer);
 
-	result = deviceContext->Map(WaterBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	WaterBufferType* waterPtr = (WaterBufferType*)mappedResource.pData;
-
-	waterPtr->heightmapAmplitude = amplitude;
-	waterPtr->waterPlaneHeight = Sealevel;
-	waterPtr->offsett = waterOffset;
-	waterPtr->depthScalar = depthScalar;
-
-	deviceContext->Unmap(WaterBuffer, 0);
-
-	deviceContext->PSSetConstantBuffers(1, 1, &WaterBuffer);
-	deviceContext->PSSetShaderResources(1, 1, &texture);
-
-
 	
-
-
-
 
 }
 

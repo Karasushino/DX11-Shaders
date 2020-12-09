@@ -463,7 +463,8 @@ void App1::firstPass()
 		renderer->setAlphaBlending(1);
 		XMFLOAT2 tes = XMFLOAT2(TesellationFactor.x,TesellationFactor.y);
 		WaterShader->setShaderParameters(renderer->getDeviceContext(), waterWorldMatrix, viewMatrix, projectionMatrix, TesellationFactor, tes, camera->getPosition(),
-		WaveSettings, textureMgr->getTexture(L"height"), WaveDirection, time, waterOffset,depthScalar,Sealevel,amplitude);
+		WaveSettings, WaveDirection, time);
+		WaterShader->setPixelShaderParameters(renderer->getDeviceContext(), waterOffset, depthScalar, Sealevel, amplitude, deepColor,shallowColor,textureMgr->getTexture(L"height"));
 		WaterShader->setHullShaderParameters(renderer->getDeviceContext(), tessellationFactor, dynamicTessellationFactor,
 			dynamicTessellationToggle, dystanceScalar);
 		WaterShader->render(renderer->getDeviceContext(), waterPlaneMesh->getIndexCount());
@@ -764,8 +765,10 @@ void App1::gui()
 		//Header for the settings of water depth
 		if (ImGui::CollapsingHeader("Water Depth Color"))
 		{
-			ImGui::SliderFloat("Water Depth Scalar", &depthScalar, 0.f, 40.f);
+			ImGui::ColorEdit4("Deep Water Color", deepColor, ImGuiColorEditFlags_NoInputs);
+			ImGui::ColorEdit4("Shallow Water Color", shallowColor, ImGuiColorEditFlags_NoInputs);
 
+			ImGui::SliderFloat("Water Depth Scalar", &depthScalar, 0.f, 40.f);
 			ImGui::SliderFloat("Offset Depth", &waterOffset, 0.f, 15.f);
 		}
 		ImGui::Separator();
