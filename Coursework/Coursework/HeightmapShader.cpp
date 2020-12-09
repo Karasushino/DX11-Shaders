@@ -83,6 +83,9 @@ void HeightmapShader::initShader(const wchar_t* vsFilename, const wchar_t* psFil
 	D3D11_BUFFER_DESC pointLightDesc = BufferHelpers::CreateBufferDescription(sizeof(PointlightBufferType));
 	renderer->CreateBuffer(&pointLightDesc, NULL, &pointLightBuffer);
 
+	// Setup the description of the buffer to set the tiling of the texture in the pixel shader.
+	D3D11_BUFFER_DESC tilingDesc = BufferHelpers::CreateBufferDescription(sizeof(TilingBufferType));
+	renderer->CreateBuffer(&tilingDesc, NULL, &tilingBuffer);
 
 
 }
@@ -100,7 +103,7 @@ void HeightmapShader::initShader(const wchar_t* vsFilename, const wchar_t* hsFil
 
 void HeightmapShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
 	XMFLOAT4 TessellationFactor, ID3D11ShaderResourceView* texture, XMFLOAT3 CameraPosInput, float InputAmplitude, ID3D11ShaderResourceView* heightmapTexture, Light* directionalLight,
-	Light* pointlight[], ID3D11ShaderResourceView* directionalDepthTex, ID3D11ShaderResourceView* pointDepthTex[], XMMATRIX pointlightViewMatrix[])
+	Light* pointlight[], ID3D11ShaderResourceView* directionalDepthTex, ID3D11ShaderResourceView* pointDepthTex[], XMMATRIX pointlightViewMatrix[], float tiling)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -210,10 +213,20 @@ void HeightmapShader::setShaderParameters(ID3D11DeviceContext* deviceContext, co
 	deviceContext->Unmap(lightMatrixBuffer, 0);
 
 
+	//Set tiling pixel shader buffer
+	TilingBufferType* tilingPtr;
+	deviceContext->Map(tilingBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	tilingPtr = (TilingBufferType*)mappedResource.pData;
+	tilingPtr->tiling = tiling;
+	tilingPtr->padding = XMFLOAT3(0, 0, 0);
+
+	deviceContext->Unmap(tilingBuffer, 0);
+
 	//Set buffers
 	deviceContext->PSSetConstantBuffers(0, 1, &dirLightBuffer);
 	deviceContext->PSSetConstantBuffers(1, 1, &pointLightBuffer);
 	deviceContext->PSSetConstantBuffers(2, 1, &lightMatrixBuffer);
+	deviceContext->PSSetConstantBuffers(3, 1, &tilingBuffer);
 
 
 	//Send Heightmap

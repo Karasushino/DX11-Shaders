@@ -75,6 +75,13 @@ protected:
 	//Render the scene that will be shown to player
 	void finalPass();
 	
+	//Helper Functions
+
+	//Returns the terrain heightmap based on the selected one
+	ID3D11ShaderResourceView* getTerrainHeigthmap();
+	
+	ID3D11ShaderResourceView* getTerrainTexture();
+
 
 private:
 	//Region of Shaders
@@ -248,9 +255,30 @@ private:
 	float deepColor[4] = { 0.13f, 0.13f, 0.8f, 0.6f };
 	float shallowColor[4] = { 0.1f, 0.9f, 0.9f, 0.2f };
 
+	float topGrassColor[4] = { 0.0f, .3f, 0.f, 1.f };
+	float bottomGrassColor[4] = { 0.0f, 1.0f, 0.f,1.f };
+
 	float ambientLight[4] = { 0.35f, 0.35f, 0.35f, 1.0f };
 
+	float grassDensity = 8.f;
+
+	//Grass settings
+	float grassMaxHeight = 2.f;
+	float grassWidth = 0.5f;
+	float windStrength = 1.5f;
+	float windFrequency = 0.05f;
+
 	bool wireframe = false;
+
+	float textureTiling = 1.f;
+	
+	const char* heightmapsLabel[2] = { "Heightmap 1", "Heightmap 2"};
+	int selectedHeightmap = 0;
+
+	const char* textureLabel[2] = { "Moss", "Bunny" };
+	int selectedTexture = 0;
+
+
 	HeightmapShader::CameraBufferType a;
 };
 

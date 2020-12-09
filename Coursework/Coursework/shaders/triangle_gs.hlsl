@@ -17,6 +17,11 @@ cbuffer MatrixBuffer : register(b0)
 cbuffer GrassBuffer : register(b1)
 {
     float time;
+    float maxHeight;
+    float width;
+    float windStrength;
+    
+    float frequency;
     float3 padding;
 };
 
@@ -89,11 +94,11 @@ float3 AddRotation(float3 pos, float rotationScalar)
 void drawGrassBlade(OutputType output, InputType input[3], inout TriangleStream<OutputType> triStream)
 {
     //Variables will be buffer
-    float maxHeight = 2.f;
+    //float maxHeight = 2.f;
     float height = maxHeight;
-    float width = 0.5f;
-    float windStrength = 1.5f;
-    float frequency = 0.05f;
+    //float width = 0.5f;
+    //float windStrength = 1.5f;
+    //float frequency = 0.05f;
     /////////////////////////////////////
     
     //Frac wil return the fractional number of the input value, meaning it will always go between 0 and 1
@@ -199,9 +204,7 @@ void main(triangle InputType input[3], inout TriangleStream<OutputType> triStrea
 {
 
     OutputType output;
-    
-    float height = 2.f;
-    
+        
     //float maxAngleToSpawnGrass = 1.f;
     //float slopeAngle = calculateStepnessFromNormal(input);
     

@@ -114,8 +114,10 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	//InsideTesellation = XMFLOAT2(1.0f, 1.0f);
 
 	textureMgr->loadTexture(L"WindMap", L"res/WaterDistortion.png");
-	textureMgr->loadTexture(L"brick", L"res/Moss0.jpg");
+	textureMgr->loadTexture(L"moss", L"res/Moss0.jpg");
+	textureMgr->loadTexture(L"Bunny", L"res/bunny.png");
 	textureMgr->loadTexture(L"height", L"res/height.jpg");
+	textureMgr->loadTexture(L"height2", L"res/height.png");
 	textureMgr->loadTexture(L"water", L"res/water.jpg");
 	textureMgr->loadTexture(L"Noise", L"res/noise.jpg");
 	textureMgr->loadTexture(L"GrassSpawn", L"res/grassNoise.jpg");
@@ -209,11 +211,11 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	//Distance Focus
 	DepthFieldSettings.x = 0.f;
 	//Focus Range
-	DepthFieldSettings.y = 11.7f;
+	DepthFieldSettings.y = 6.7f;
 	//Close plane
-	DepthFieldSettings.z = 7.1f;
+	DepthFieldSettings.z = 9.3f;
 	//Far plane
-	DepthFieldSettings.w = 71.7;
+	DepthFieldSettings.w = 32.0;
 }
 
 
@@ -225,6 +227,46 @@ App1::~App1()
 
 	// Release the Direct3D object.
 
+}
+
+ID3D11ShaderResourceView* App1::getTerrainHeigthmap()
+{
+	ID3D11ShaderResourceView* heightmap = nullptr;
+
+	switch (selectedHeightmap)
+	{
+	case 0:
+		heightmap = textureMgr->getTexture(L"height");
+		break;
+
+	case 1:
+		heightmap = textureMgr->getTexture(L"height2");
+		break;
+	default:
+		break;
+	}
+
+	return heightmap;
+}
+
+ID3D11ShaderResourceView* App1::getTerrainTexture()
+{
+	ID3D11ShaderResourceView* texture = nullptr;
+
+	switch (selectedTexture)
+	{
+	case 0:
+		texture = textureMgr->getTexture(L"moss");
+		break;
+
+	case 1:
+		texture = textureMgr->getTexture(L"Bunny");
+		break;
+	default:
+		break;
+	}
+
+	return texture;
 }
 
 
@@ -298,7 +340,7 @@ void App1::depthPass()
 
 		// Render terrain
 		planeMesh->sendData(renderer->getDeviceContext());
-		DepthHeightmapShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix,amplitude,textureMgr->getTexture(L"height"));
+		DepthHeightmapShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix,amplitude, getTerrainHeigthmap());
 		DepthHeightmapShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
 
 	    XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(ballposition[0],ballposition[1],ballposition[2]);
@@ -311,7 +353,7 @@ void App1::depthPass()
 
 		// Render terrain
 		grassMesh->sendData(renderer->getDeviceContext());
-		grassShaderDepth->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture(L"WindMap"), time, textureMgr->getTexture(L"height"),
+		grassShaderDepth->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture(L"WindMap"), time, getTerrainHeigthmap(),
 			textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"), amplitude);
 		grassShaderDepth->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
 
@@ -322,8 +364,6 @@ void App1::depthPass()
 
 
 }
-
-
 
 void App1::cameraDepthPass()
 {
@@ -336,7 +376,7 @@ void App1::cameraDepthPass()
 
 	// Render terrain
 	planeMesh->sendData(renderer->getDeviceContext());
-	DepthHeightmapShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, camViewMatrix, camProjectionMatrix, amplitude, textureMgr->getTexture(L"height"));
+	DepthHeightmapShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, camViewMatrix, camProjectionMatrix, amplitude, getTerrainHeigthmap());
 	DepthHeightmapShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
 
 	XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(ballposition[0], ballposition[1], ballposition[2]);
@@ -348,7 +388,7 @@ void App1::cameraDepthPass()
 
 	// Render terrain
 	grassMesh->sendData(renderer->getDeviceContext());
-	grassShaderDepth->setShaderParameters(renderer->getDeviceContext(), worldMatrix, camViewMatrix, camProjectionMatrix, textureMgr->getTexture(L"WindMap"), time, textureMgr->getTexture(L"height"),
+	grassShaderDepth->setShaderParameters(renderer->getDeviceContext(), worldMatrix, camViewMatrix, camProjectionMatrix, textureMgr->getTexture(L"WindMap"), time, getTerrainHeigthmap(),
 		textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"), amplitude);
 	grassShaderDepth->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
 
@@ -388,7 +428,7 @@ void App1::pointlightDepthPass()
 
 			//Render terrain for Depth map
 			planeMesh->sendData(renderer->getDeviceContext());
-			DepthHeightmapShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, amplitude, textureMgr->getTexture(L"height"));
+			DepthHeightmapShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, amplitude, getTerrainHeigthmap());
 			DepthHeightmapShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
 
 			//Move the geometry
@@ -402,7 +442,7 @@ void App1::pointlightDepthPass()
 
 			// Render terrain
 			grassMesh->sendData(renderer->getDeviceContext());
-			grassShaderDepth->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture(L"WindMap"), time, textureMgr->getTexture(L"height"),
+			grassShaderDepth->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture(L"WindMap"), time, getTerrainHeigthmap(),
 				textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"), amplitude);
 			grassShaderDepth->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
 
@@ -450,10 +490,27 @@ void App1::firstPass()
 
 		// Send geometry data, set shader parameters, render object with shader
 		planeMesh->sendData(renderer->getDeviceContext());
-		PlaneShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,TesellationFactor, textureMgr->getTexture(L"brick"), camera->getPosition(),
-		amplitude, textureMgr->getTexture(L"height"), directionalLight, pointlight, depthmapDirectional->getDepthMapSRV(), pointlightDepthTextures,pointlightView);
+		PlaneShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,TesellationFactor, getTerrainTexture(), camera->getPosition(),
+		amplitude, getTerrainHeigthmap(), directionalLight, pointlight, depthmapDirectional->getDepthMapSRV(), pointlightDepthTextures,pointlightView,textureTiling);
 	
 		PlaneShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
+	}
+
+
+	if (renderGrass)
+	{
+		renderer->setNoCullMode(true);
+		grassMesh->sendData(renderer->getDeviceContext(), D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+		grassShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"WindMap"), getTerrainHeigthmap(),
+			textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"), amplitude, directionalLight, depthmapDirectional->getDepthMapSRV());
+
+		grassShader->setPixelShaderParameters(renderer->getDeviceContext(), bottomGrassColor, topGrassColor);
+		grassShader->setHullshaderParameters(renderer->getDeviceContext(), grassDensity);
+		grassShader->setGeometryShaderParameters(renderer->getDeviceContext(), grassMaxHeight, grassWidth, windStrength, windFrequency, time);
+
+
+		grassShader->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
+		renderer->setNoCullMode(false);
 	}
 
 	if (renderWater)
@@ -464,7 +521,7 @@ void App1::firstPass()
 		XMFLOAT2 tes = XMFLOAT2(TesellationFactor.x,TesellationFactor.y);
 		WaterShader->setShaderParameters(renderer->getDeviceContext(), waterWorldMatrix, viewMatrix, projectionMatrix, TesellationFactor, tes, camera->getPosition(),
 		WaveSettings, WaveDirection, time);
-		WaterShader->setPixelShaderParameters(renderer->getDeviceContext(), waterOffset, depthScalar, Sealevel, amplitude, deepColor,shallowColor,textureMgr->getTexture(L"height"));
+		WaterShader->setPixelShaderParameters(renderer->getDeviceContext(), waterOffset, depthScalar, Sealevel, amplitude, deepColor,shallowColor, getTerrainHeigthmap());
 		WaterShader->setHullShaderParameters(renderer->getDeviceContext(), tessellationFactor, dynamicTessellationFactor,
 			dynamicTessellationToggle, dystanceScalar);
 		WaterShader->render(renderer->getDeviceContext(), waterPlaneMesh->getIndexCount());
@@ -484,15 +541,7 @@ void App1::firstPass()
 	textureShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"));
 	textureShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
 
-	if (renderGrass)
-	{
-	renderer->setNoCullMode(true);
-	grassMesh->sendData(renderer->getDeviceContext(), D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-	grassShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"WindMap"), time, textureMgr->getTexture(L"height"),
-		textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"),amplitude,directionalLight, depthmapDirectional->getDepthMapSRV());
-	grassShader->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
-	renderer->setNoCullMode(false);
-	}
+	
 
 	//Set it always to walse so it doens't get beyond this point and wareframe render textures
 	renderer->setWireframeMode(false);
@@ -685,6 +734,7 @@ void App1::finalPass()
 	renderer->endScene();
 }
 
+
 void App1::gui()
 {
 	// Force turn off unnecessary shader stages.
@@ -700,8 +750,8 @@ void App1::gui()
 
 	
 	ImGui::Begin("Shader Settings");
-	/*ImGui::TextColored(ImVec4(0.2, 0.7, 1,1),"Help"); ImGui::SameLine();
-	ImGuiFunctions::QuestionmarkTooltip("Click buttons to open the windows");*/
+	ImGui::TextWrapped("Click on the buttons to open their settings."); 
+
 	
 	//Water bool
 	static bool mizu = false;
@@ -796,22 +846,66 @@ void App1::gui()
 	static bool terrain = false;
 	ImGuiFunctions::ToggleButton(ImGui::Button("Terrain",ImVec2(ImGui::GetWindowSize().x * 0.65f, 0.0f)), &terrain);
 	ImGui::SameLine();
-	ImGui::Checkbox(" ", &renderPlane);
+	ImGui::Checkbox("##1", &renderPlane);
 	if (terrain)
 	{
 		ImGui::Begin("Terrain Settings", &terrain);
+
+		static const char* selectedItem = heightmapsLabel[0];
+		//Drop down combo menu to select the heightmap to use
+		if (ImGui::BeginCombo("Heightmaps", selectedItem))
+		{
+			for (int i = 0; i < IM_ARRAYSIZE(heightmapsLabel); i++)
+			{
+				bool isSelected = (selectedItem == heightmapsLabel[i]);
+				if (ImGui::Selectable(heightmapsLabel[i], isSelected))
+				{
+					selectedItem = heightmapsLabel[i];
+					selectedHeightmap = i;
+				}
+					
+				if (isSelected)
+				{
+					
+					ImGui::SetItemDefaultFocus();
+					
+				}
+				
+			}
+			ImGui::EndCombo();
+		}
+
+		//Drop down combo menu to select the texture to use
+
+		static const char* selectedItemT = textureLabel[0];
+		if (ImGui::BeginCombo("Textures", selectedItemT))
+		{
+			for (int i = 0; i < IM_ARRAYSIZE(textureLabel); i++)
+			{
+				bool isSelected = (selectedItemT == textureLabel[i]);
+				if (ImGui::Selectable(textureLabel[i], isSelected))
+				{
+					selectedItemT = textureLabel[i];
+					selectedTexture = i;
+				}
+
+				if (isSelected)
+				{
+
+					ImGui::SetItemDefaultFocus();
+
+				}
+
+			}
+			ImGui::EndCombo();
+		}
+
 		//Resizes slider
 		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.40f);
 		
+		ImGui::SliderFloat("Tiling Factor", &textureTiling, 1.0f, 25.0f);
 		ImGui::SliderFloat("Tessellation Factor", &TesellationFactor.x, 1.0f, 25.0f);
-		/*if (ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			ImGui::Text("Sets manually the tessellation factor");
-			ImGui::EndTooltip();
 
-		}*/
-			
 		ImGui::SliderFloat("Amplitude Heightmap", &amplitude, 1.0f, 100.0f);
 		ImGui::End();
 	}
@@ -893,7 +987,7 @@ void App1::gui()
 	static bool postprocessing = false;
 	ImGuiFunctions::ToggleButton(ImGui::Button("Postprocessing", ImVec2(ImGui::GetWindowSize().x * 0.65f, 0.0f)), &postprocessing);
 	ImGui::SameLine();
-	ImGui::Checkbox("  ", &togglePostprocess);
+	ImGui::Checkbox("##2", &togglePostprocess);
 	if (postprocessing)
 	{
 		ImGui::Begin("Postprocessing Settings", &postprocessing);
@@ -911,9 +1005,28 @@ void App1::gui()
 		ImGui::End();
 	}
 
+	//Postprocessing bool window
+	static bool grass = false;
+	ImGuiFunctions::ToggleButton(ImGui::Button("Grass", ImVec2(ImGui::GetWindowSize().x * 0.65f, 0.0f)), &grass);
+	ImGui::SameLine();
+	ImGui::Checkbox("##3", &renderGrass);
+	if (grass)
+	{
+		ImGui::Begin("Grass Settings", &grass);
+		//Resizes slider
+		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.40f);
+		ImGui::ColorEdit4("Bottom Grass Color", bottomGrassColor, ImGuiColorEditFlags_NoInputs);
+		ImGui::ColorEdit4("Top Grass Color", topGrassColor, ImGuiColorEditFlags_NoInputs);
+		ImGui::Separator();
+		ImGui::SliderFloat("Grass Density", &grassDensity,1,20);
+		ImGui::SliderFloat("Grass Max Height", &grassMaxHeight, 1, 4);
+		ImGui::SliderFloat("Grass Width", &grassWidth, 0.2f, 5);
+		ImGui::SliderFloat("Wind Strength", &windStrength, 1, 3);
+		ImGui::SliderFloat("Wind Frequency", &windFrequency, 0.f, 0.2f);
 
-	ImGui::Checkbox("Grass", &renderGrass);
-	
+		ImGui::End();
+
+	}
 
 	ImGui::End();
 	// Render UI

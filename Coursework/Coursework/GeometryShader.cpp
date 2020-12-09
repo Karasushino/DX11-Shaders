@@ -33,6 +33,7 @@ GeometryShader::~GeometryShader()
 	BaseShader::~BaseShader();
 }
 
+
 void GeometryShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilename)
 {
 	// Load (+ compile) shader files
@@ -69,6 +70,13 @@ void GeometryShader::initShader(const wchar_t* vsFilename, const wchar_t* psFile
 	renderer->CreateBuffer(&heightmapBufferDesc, NULL, &heightmapBuffer);
 
 
+	D3D11_BUFFER_DESC grassColorBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(GrassColorBufferType));
+	renderer->CreateBuffer(&grassColorBufferDesc, NULL, &grassColorbuffer);
+
+
+	D3D11_BUFFER_DESC hullBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(GrassDensityBufferType));
+	renderer->CreateBuffer(&hullBufferDesc, NULL, &hullBuffer);
+
 }
 
 void GeometryShader::initShader(const wchar_t* vsFilename, const wchar_t* hsFilename, const wchar_t* dsFilename, const wchar_t* gsFilename, const wchar_t* psFilename)
@@ -83,12 +91,29 @@ void GeometryShader::initShader(const wchar_t* vsFilename, const wchar_t* hsFile
 }
 
 
-void GeometryShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* texture, float time, ID3D11ShaderResourceView* height, ID3D11ShaderResourceView* noise
+void GeometryShader::setHullshaderParameters(ID3D11DeviceContext* deviceContext, float grassDensity)
+{
+	//Pixel Shader Parameters
+
+	// Send light data to pixel shader
+	GrassDensityBufferType* densityPtr;
+
+	deviceContext->Map(hullBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	//Set directional light buffer
+	densityPtr = (GrassDensityBufferType*)mappedResource.pData;
+	densityPtr->density = grassDensity;
+	densityPtr->padding = XMFLOAT3(0, 0, 0);
+
+	deviceContext->Unmap(hullBuffer, 0);
+
+	deviceContext->HSSetConstantBuffers(1, 1, &hullBuffer);
+}
+
+void GeometryShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* height, ID3D11ShaderResourceView* noise
 	,ID3D11ShaderResourceView* grassNoise, float amplitude, Light* directionalLight, ID3D11ShaderResourceView* directionalDepthTex)
 {
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
-	
 	// Transpose the matrices to prepare them for the shader.
 	XMMATRIX tworld = XMMatrixTranspose(worldMatrix);
 	XMMATRIX tview = XMMatrixTranspose(viewMatrix);
@@ -115,22 +140,7 @@ void GeometryShader::setShaderParameters(ID3D11DeviceContext* deviceContext, con
 	deviceContext->Unmap(heightmapBuffer, 0);
 	deviceContext->DSSetConstantBuffers(1, 1, &heightmapBuffer);
 
-	//Set grass buffer
-	GrassBufferType* grassPtr;
-	deviceContext->Map(grassBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	grassPtr = (GrassBufferType*)mappedResource.pData;
-	grassPtr->time = time;// worldMatrix;
-	grassPtr->padding = XMFLOAT3(0, 0, 0);
-	deviceContext->Unmap(grassBuffer, 0);
-	deviceContext->GSSetConstantBuffers(1, 1, &grassBuffer);
-
-	//use default sampler and set distortion texture to bend grass
-	deviceContext->GSSetShaderResources(0,1,&texture);
-	deviceContext->GSSetShaderResources(1, 1, &noise);
-	deviceContext->GSSetShaderResources(2, 1, &grassNoise);
-	deviceContext->GSSetSamplers(0, 1, &sampleState);
-
-	//ps
+	//Pixel Shader Parameters
  
 	// Send light data to pixel shader
 	DirectionalLightBufferType* dirLightPtr;
@@ -165,5 +175,51 @@ void GeometryShader::setShaderParameters(ID3D11DeviceContext* deviceContext, con
 	//Set buffers
 	deviceContext->PSSetConstantBuffers(0, 1, &dirLightBuffer);
 	deviceContext->PSSetConstantBuffers(1, 1, &lightMatrixBuffer);
+
+	//use default sampler and set distortion texture to bend grass
+	deviceContext->GSSetShaderResources(0, 1, &texture);
+	deviceContext->GSSetShaderResources(1, 1, &noise);
+	deviceContext->GSSetShaderResources(2, 1, &grassNoise);
+
+}
+
+void GeometryShader::setPixelShaderParameters(ID3D11DeviceContext* deviceContext, float bottomColor[4], float topColor[4])
+{
+	//Pixel Shader Parameters
+
+	// Send light data to pixel shader
+	GrassColorBufferType* grassPtr;
+	deviceContext->Map(grassColorbuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	//Set directional light buffer
+	grassPtr = (GrassColorBufferType*)mappedResource.pData;
+	grassPtr->bottomColor = XMFLOAT4(bottomColor[0], bottomColor[1], bottomColor[2], bottomColor[3]);
+	grassPtr->topColor = XMFLOAT4(topColor[0], topColor[1], topColor[2], topColor[3]);
+
+	deviceContext->Unmap(grassColorbuffer, 0);
+
+	deviceContext->PSSetConstantBuffers(2, 1, &grassColorbuffer);
+
+
+}
+
+void GeometryShader::setGeometryShaderParameters(ID3D11DeviceContext* deviceContext, float maxHeight, float width, float windStrength, float frequency,float time)
+{
+	//Set grass buffer
+	GrassBufferType* grassPtr;
+	deviceContext->Map(grassBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	grassPtr = (GrassBufferType*)mappedResource.pData;
+
+	grassPtr->frequency = frequency;
+	grassPtr->maxHeight = maxHeight;
+	grassPtr->width = width;
+	grassPtr->windStrength = windStrength;
+
+	grassPtr->time = time;// worldMatrix;
+	grassPtr->padding = XMFLOAT3(0, 0, 0);
+	deviceContext->Unmap(grassBuffer, 0);
+	deviceContext->GSSetConstantBuffers(1, 1, &grassBuffer);
+	
+	deviceContext->GSSetSamplers(0, 1, &sampleState);
 
 }

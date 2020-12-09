@@ -21,6 +21,12 @@ cbuffer LightMatrixBufferType : register(b1)
 
 };
 
+cbuffer GrassColorBuffer : register(b2)
+{
+    float4 bottomColor;
+    float4 topColor;
+}
+
 struct InputType
 {
     float4 position : SV_POSITION;
@@ -128,14 +134,14 @@ float4 main(InputType input) : SV_TARGET
     //This will be changed to a buffer later on.
     float shadowMapBias = 0.01f;
     
-    float3 bottomColor = float3(0.0f, .3f, 0.f);
-    float3 topColor = float3(0.0f, 1.0f, 0.f);
+    //float3 bottomColor = float3(0.0f, .3f, 0.f);
+   // float3 topColor = float3(0.0f, 1.0f, 0.f);
 
     //Ambient color
     float3 lightColor = ambient;
     
     //generate the color of the grass blade base on height
-    float3 grassTexture = lerp(topColor, bottomColor, input.tex.y+0.2f);
+    float3 grassTexture = lerp(topColor.xyz, bottomColor.xyz, input.tex.y + 0.2f);
     //Add the lighting
     lightColor += getDirectionalLightContribution(shadowMapBias, input);
 

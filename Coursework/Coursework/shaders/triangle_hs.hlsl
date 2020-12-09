@@ -21,6 +21,12 @@ struct ConstantOutputType
     float inside : SV_InsideTessFactor;
 };
 
+cbuffer GrassDensityBuffer : register(b1)
+{
+    float density;
+    float3 padding;
+};
+
 
 ConstantOutputType PatchConstantFunction(InputPatch<InputType, 3> inputPatch, uint patchId : SV_PrimitiveID)
 {
@@ -29,11 +35,11 @@ ConstantOutputType PatchConstantFunction(InputPatch<InputType, 3> inputPatch, ui
  
     
     
-    output.edges[0] = 8;
-    output.edges[1] = 8;
-    output.edges[2] = 8;
+    output.edges[0] = density;
+    output.edges[1] = density;
+    output.edges[2] = density;
      
-    output.inside = 8;
+    output.inside = density;
     
     return output;
 }

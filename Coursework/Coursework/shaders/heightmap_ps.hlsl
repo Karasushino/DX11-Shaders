@@ -33,6 +33,13 @@ cbuffer LightMatrixBufferType : register(b2)
     matrix pointlightView[numberOfPointlights * 6];
 };
 
+cbuffer TextureTilingBufferType : register(b3)
+{
+    float textureTiling;
+    float3 padding;
+}
+
+
 struct InputType
 {
     float4 position : SV_POSITION;
@@ -113,6 +120,7 @@ float2 getProjectiveCoords(float4 lightViewPosition)
 //Returns the corresponding pixel color, with shadows (not working)
 float4 getPointlightContribution(float shadowMapBias, InputType input)
 {
+    int index = 0;
     float4 lightColour = 0.f;
      // Calculate the projected texture coordinasetes.
     //"i" correspond for index of pointlight
@@ -131,10 +139,10 @@ float4 getPointlightContribution(float shadowMapBias, InputType input)
        
         //"z" corresponds to the pointlight depth map
         //Check only forward
-        for (int z = 0; z < numberOfPointlights * 6; z++)
+        for (int z = 0; z < 6; z++)
         {
             //Calculate the view position from the pointlight perspective
-            float4 viewPosition = calculateViewMatrix(pointlightProjection[i], pointlightView[z], input);
+            float4 viewPosition = calculateViewMatrix(pointlightProjection[i], pointlightView[index], input);
             
             //Get projective Coords of pointlight view
             float2 pTexCoord = getProjectiveCoords(viewPosition);
@@ -144,7 +152,7 @@ float4 getPointlightContribution(float shadowMapBias, InputType input)
             if (hasDepthData(pTexCoord))
             {
             // Has depth map data
-                if (!isInShadow(pointlightDepthMap[z], pTexCoord, viewPosition, shadowMapBias))
+                if (!isInShadow(pointlightDepthMap[index], pTexCoord, viewPosition, shadowMapBias))
                 {
                     //is NOT in shadow, therefore light
                 
@@ -157,6 +165,7 @@ float4 getPointlightContribution(float shadowMapBias, InputType input)
                 }
                 
             }
+            index++;
           
         }
        
@@ -194,7 +203,7 @@ float4 main(InputType input) : SV_TARGET
 
     
 	// Sample the color of the pixel based on sampled texture.
-    float4 textureColor = texture0.Sample(Sampler0, input.tex);
+    float4 textureColor = texture0.Sample(Sampler0, input.tex * textureTiling);
     //textureColor = float4(textureColor.xyz, 0.7f);
     
    
