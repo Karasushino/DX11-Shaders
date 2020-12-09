@@ -113,13 +113,27 @@ void TessellationShader::initShader(const wchar_t* vsFilename, const wchar_t* hs
 	loadDomainShader(dsFilename);
 }
 
+void TessellationShader::setHullShaderParameters(ID3D11DeviceContext* deviceContext, float tessellationFactor, float dynamicTessellationFactor, bool dynmaicTesellationToggle, float distanceScalar)
+{
+
+	// Lock the constant buffer so it can be written to.
+	result = deviceContext->Map(hullBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	HullBufferType* HullPtr = (HullBufferType*)mappedResource.pData;
+	HullPtr->distanceScalar = distanceScalar;
+	HullPtr->dynamicTessellationFactor = dynamicTessellationFactor;
+	HullPtr->dynmaicTesellationToggle = dynamicTessellationFactor;
+	HullPtr->tessellationFactor = tessellationFactor;
+	deviceContext->Unmap(hullBuffer, 0);
+	deviceContext->HSSetConstantBuffers(0, 1, &hullBuffer);
+}
+
+
 
 void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
 	XMFLOAT4 EdgeTesellation, XMFLOAT2 InsideTesellation, XMFLOAT3 CameraPosInput, XMFLOAT4 InputWaveSettings[], ID3D11ShaderResourceView* texture,
 	float InputWaveDirection[], float time, float waterOffset,float depthScalar, float Sealevel, float amplitude)
 {
-	HRESULT result;
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	
 
 	// Transpose the matrices to prepare them for the shader.
 	XMMATRIX tworld = XMMatrixTranspose(worldMatrix);
@@ -136,14 +150,7 @@ void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 	deviceContext->DSSetConstantBuffers(0, 1, &matrixBuffer);
 
 
-	// Lock the constant buffer so it can be written to.
-	result = deviceContext->Map(hullBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	HullBufferType* HullPtr = (HullBufferType*)mappedResource.pData;
-	HullPtr->Edges = EdgeTesellation;
-	HullPtr->Inside = InsideTesellation;
-	HullPtr->padding = XMFLOAT2(0.0f, 0.0f);
-	deviceContext->Unmap(hullBuffer, 0);
-	deviceContext->HSSetConstantBuffers(0,1,&hullBuffer);
+	
 
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);

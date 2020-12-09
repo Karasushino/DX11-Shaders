@@ -131,8 +131,8 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	directionalLight = new Light;
 	directionalLight->setAmbientColour(0.35f, 0.35f, 0.35f, 1.0f);
 	directionalLight->setDiffuseColour(1.0f, 1.0f, 1.0f, 1.0f);
-	directionalLight->setDirection(0.7f, 1.f, 1.f);
-	directionalLight->setPosition(0.f, -15.f, 15.f);
+	directionalLight->setDirection(0.7f, -0.7f, 0.f);
+	directionalLight->setPosition(50.f, 15.f, 50.f);
 	directionalLight->generateViewMatrix();
 	directionalLight->generateOrthoMatrix((float)sceneWidth, (float)sceneHeight, 2.f, 100.f);
 
@@ -261,17 +261,21 @@ bool App1::render()
 	//Render the scene
 	firstPass();
 
+	//If postprocessing is on do.
+	if (togglePostprocess)
+	{
+		//Post Processing
+		downsample();
 
-	//Post Processing
-	downsample();
+		//Render scene to texture
+		horizontalBlur();
+		verticalBlur();
+		depthOfFieldPass();
 
-	//Render scene to texture
-	horizontalBlur();
-	verticalBlur();
-	depthOfFieldPass();
-
-	//Upsample all post processing
-	upSampleTexture();
+		//Upsample all post processing
+		upSampleTexture();
+	}
+	
 
 	//Render the scene for the user
 	finalPass();
@@ -431,8 +435,9 @@ void App1::firstPass()
 	// Generate the view matrix based on the camera's position.
 	camera->update();
 
-	
 
+	//Toggle wiregrame mode only for this portion
+	renderer->setWireframeMode(wireframe);
 
 	// Get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
 	worldMatrix = renderer->getWorldMatrix();
@@ -459,17 +464,19 @@ void App1::firstPass()
 		XMFLOAT2 tes = XMFLOAT2(TesellationFactor.x,TesellationFactor.y);
 		WaterShader->setShaderParameters(renderer->getDeviceContext(), waterWorldMatrix, viewMatrix, projectionMatrix, TesellationFactor, tes, camera->getPosition(),
 		WaveSettings, textureMgr->getTexture(L"height"), WaveDirection, time, waterOffset,depthScalar,Sealevel,amplitude);
+		WaterShader->setHullShaderParameters(renderer->getDeviceContext(), tessellationFactor, dynamicTessellationFactor,
+			dynamicTessellationToggle, dystanceScalar);
 		WaterShader->render(renderer->getDeviceContext(), waterPlaneMesh->getIndexCount());
 		renderer->setAlphaBlending(0);
 	}
 
 	
-	//Debuging window
-	smolOrthoMesh->sendData(renderer->getDeviceContext());
-	XMMATRIX orthoMatrix = renderer->getOrthoMatrix();
-	XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();
-	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, depthmapDirectional->getDepthMapSRV());
-	textureShader->render(renderer->getDeviceContext(), smolOrthoMesh->getIndexCount());
+	////Debuging window
+	//smolOrthoMesh->sendData(renderer->getDeviceContext());
+	//XMMATRIX orthoMatrix = renderer->getOrthoMatrix();
+	//XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();
+	//textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, depthmapDirectional->getDepthMapSRV());
+	//textureShader->render(renderer->getDeviceContext(), smolOrthoMesh->getIndexCount());
 
 	XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(ballposition[0], ballposition[1], ballposition[2]);
 	CubeShadow->sendData(renderer->getDeviceContext());
@@ -486,7 +493,8 @@ void App1::firstPass()
 	renderer->setNoCullMode(false);
 	}
 
-
+	//Set it always to walse so it doens't get beyond this point and wareframe render textures
+	renderer->setWireframeMode(false);
 	// Swap the buffers
 	renderer->setBackBufferRenderTarget();
 
@@ -646,6 +654,16 @@ void App1::finalPass()
 	// Clear the scene. (default blue colour)
 	renderer->beginScene(0.39f, 0.58f, 0.92f, 1.0f);
 
+	/*Checks if the post processing stage is on, if it is it will get the processed texture, if it isn't it will just get
+	the render texture from the 1st pass*/
+	ID3D11ShaderResourceView* finalRender;
+	if (togglePostprocess)
+		finalRender = upsampleTexture->getShaderResourceView();
+	else
+		finalRender = renderTexture->getShaderResourceView();
+
+
+
 	// RENDER THE RENDER TEXTURE SCENE
 	// Requires 2D rendering and an ortho mesh.
 	renderer->setZBuffer(false);
@@ -653,7 +671,7 @@ void App1::finalPass()
 	XMMATRIX orthoMatrix = renderer->getOrthoMatrix();  // ortho matrix for 2D rendering
 	XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix(); // Default camera position for orthographic rendering
 	orthoMesh->sendData(renderer->getDeviceContext()); 
-	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, upsampleTexture->getShaderResourceView());
+	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, finalRender);
 	textureShader->render(renderer->getDeviceContext(), orthoMesh->getIndexCount());
 	renderer->setZBuffer(true);
 
@@ -675,13 +693,14 @@ void App1::gui()
 	ImGui::BeginMainMenuBar();
 	ImGui::Text("FPS: %.2f", timer->getFPS());
 	ImGui::Text("Time elapsed: %.2f", time);
+	ImGui::Checkbox("Wireframe mode", &wireframe);
 	ImGui::EndMainMenuBar();
 
 
 	
-
-	ImGui::Checkbox("Wireframe mode", &wireframeToggle);
-
+	ImGui::Begin("Shader Settings");
+	/*ImGui::TextColored(ImVec4(0.2, 0.7, 1,1),"Help"); ImGui::SameLine();
+	ImGuiFunctions::QuestionmarkTooltip("Click buttons to open the windows");*/
 	
 	//Water bool
 	static bool mizu = false;
@@ -692,8 +711,13 @@ void App1::gui()
 	if (mizu)
 	{
 		ImGui::Begin("Water Settings", &mizu);
+
 		//Resizes slider
 		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.40f);
+
+		//Move the plane up or down
+		ImGui::SliderFloat("Water Level", &Sealevel, -20.0f, 20.0f);
+		
 
 		//Header for the settings of Wave 1
 		if(ImGui::CollapsingHeader("Wave 1 Settings"))
@@ -746,8 +770,22 @@ void App1::gui()
 		}
 		ImGui::Separator();
 
-		//Move the plane up or down
-		ImGui::SliderFloat("Water Level: ", &Sealevel, -20.0f, 20.0f);
+		//Header for the settings of water tessellation
+		if (ImGui::CollapsingHeader("Water Tessellation"))
+		{
+			ImGui::Checkbox("Dynamic Tessellation", &dynamicTessellationToggle);
+			if (dynamicTessellationToggle)
+			{
+				ImGui::SliderFloat("Dynamic Factor", &dynamicTessellationFactor, 0, 15);
+				ImGui::SliderFloat("Distance Scalar", &dystanceScalar, 1, 150);
+			}
+			else
+				ImGui::SliderFloat("Tessellation Factor", &tessellationFactor,0,25);
+
+			//ImGui::SliderFloat("Tessellation Factor", &TesellationFactor.x, 1.0f, 25.0f);
+
+		}
+		ImGui::Separator();
 		ImGui::End();
 	}
 	
@@ -784,8 +822,27 @@ void App1::gui()
 		//Resizes slider
 		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.40f);
 
+		static bool dirlightOff = false;
+		static bool pointlightsOff = false;
+		ImGui::Checkbox("Toggle Dir Light", &dirlightOff);
+		if (dirlightOff)
+			directionalLight->setDiffuseColour(0, 0, 0, 1.f);
+		else
+			directionalLight->setDiffuseColour(directionalDiffuse[0], directionalDiffuse[1], directionalDiffuse[2], 1.f);
+
 		if (ImGui::CollapsingHeader("Directional Light"))
 		{
+			//Lighting bool window
+			
+			ImGui::ColorEdit4("Directional Diffuse", directionalDiffuse, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+
+			if(!dirlightOff)
+			directionalLight->setDiffuseColour(directionalDiffuse[0], directionalDiffuse[1], directionalDiffuse[2], 1.f);
+
+			directionalLight->setDirection(direction[0], direction[1], direction[2]);
+			ImGui::SameLine(); ImGui::Text("Directional Diffuse Color Picker"); 
+			ImGui::SameLine(); ImGuiFunctions::QuestionmarkTooltip("Click on box to pop up picker.");
+
 			//This is temporal, will be changed to SliderAngle and calculate vectors on Shader from the angle inputed
 			ImGui::SliderFloat3("Directional Light Direction:", direction, -1.f, 1.f);
 			if (direction[0] == 0.0f)
@@ -793,22 +850,29 @@ void App1::gui()
 			if (direction[1] == 0.0f)
 				direction[1] = 0.000001;
 
-			directionalLight->setDirection(direction[0], direction[1], direction[2]);
 			
-			ImGui::SliderFloat("Directional Light Intensity", &diff[0], 0.f, 100.f);
-			directionalLight->setDiffuseColour(diff[0], diff[0], diff[0], 1.f);
 
 			ImGui::SliderFloat3("Directional Light Position:", position, -50.f, 50.f);
 			directionalLight->setPosition(position[0], position[1], position[2]);
 		
 		}
+		
 
 
 		ImGui::Separator();
 		
 
+		
+			
 		ImGui::SliderFloat3("Pointlight 1 Position:", pointPosition, -120.f, 120.f);
 		pointlight[0]->setPosition(pointPosition[0], pointPosition[1], pointPosition[2]);
+
+		ImGui::ColorEdit4("Pointlight Diffuse", pointlightDiffuse, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+		pointlight[0]->setDiffuseColour(pointlightDiffuse[0], pointlightDiffuse[1], pointlightDiffuse[2], 1.f);
+
+
+		ImGui::SameLine(); ImGui::Text("Pointlight Diffuse Color Picker");
+		ImGui::SameLine(); ImGuiFunctions::QuestionmarkTooltip("Click on box to pop up picker.");
 
 		ImGui::SliderFloat3("Pointlight Attenuation", att, 0.f, 1.f);
 
@@ -822,14 +886,21 @@ void App1::gui()
 	//Postprocessing bool window
 	static bool postprocessing = false;
 	ImGuiFunctions::ToggleButton(ImGui::Button("Postprocessing", ImVec2(ImGui::GetWindowSize().x * 0.65f, 0.0f)), &postprocessing);
+	ImGui::SameLine();
+	ImGui::Checkbox("  ", &togglePostprocess);
 	if (postprocessing)
 	{
 		ImGui::Begin("Postprocessing Settings", &postprocessing);
 
-		ImGui::Text("Depth of Field");
+		ImGui::TextColored(ImVec4(0.149, 1, 0.078,1),"Depth of Field");
 		ImGui::SliderFloat("Focus Range", &DepthFieldSettings.y, 0.f, 15.f);
+		ImGui::SameLine(); ImGuiFunctions::QuestionmarkTooltip("A scalar that determines the range where blur will start, higher value makes it further from the camera.");
+
 		ImGui::SliderFloat("Close plane", &DepthFieldSettings.z, 0.f, 15.f);
+		ImGui::SameLine(); ImGuiFunctions::QuestionmarkTooltip("Changes the width of the area to be blurred, bigger value creates a wider area.");
+
 		ImGui::SliderFloat("Far plane", &DepthFieldSettings.w, 1.f, 150.f);
+		ImGui::SameLine(); ImGuiFunctions::QuestionmarkTooltip("Moves the area to blur closer or further from the camera, smaller makes it further from it.");
 
 		ImGui::End();
 	}
@@ -838,7 +909,7 @@ void App1::gui()
 	ImGui::Checkbox("Grass", &renderGrass);
 	
 
-	
+	ImGui::End();
 	// Render UI
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

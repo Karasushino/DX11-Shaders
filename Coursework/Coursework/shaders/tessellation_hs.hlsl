@@ -3,13 +3,15 @@
 
 cbuffer HullBuffer : register(b0)
 {
-    float4 EdgeTesellation;
-    float2 InsideTesellation;
+    float tessellationFactor;
+    float dynamicTessellationFactor;
+    bool dynmaicTesellationToggle;
+    float distanceScalar;
 }
 cbuffer HullCameraBuffer : register(b1)
 {
     float3 cameraPosition;
-    float padding;
+    float padding1;
 }
 
 
@@ -36,39 +38,30 @@ struct OutputType
 ConstantOutputType PatchConstantFunction(InputPatch<InputType, 4> inputPatch, uint patchId : SV_PrimitiveID)
 {    
     ConstantOutputType output;
-    float3 avgPos = inputPatch[0].position;
-    avgPos += inputPatch[1].position;
-    avgPos += inputPatch[2].position;
-    avgPos += inputPatch[3].position;
+    
 
-    avgPos /= 4.0f;
+    
+    if (dynmaicTesellationToggle)
+    {
+        
+        //Get the middle point of the patch points
+        float3 avgPos = inputPatch[0].position;
+        avgPos += inputPatch[1].position;
+        avgPos += inputPatch[2].position;
+        avgPos += inputPatch[3].position;
+        avgPos /= 4.0f;
+        float3 distanceFromPlane = distance(cameraPosition, avgPos);
+    
+        output.edges[0] = clamp(distanceScalar / distanceFromPlane * dynamicTessellationFactor, 1, 64);
+        output.edges[1] = clamp(distanceScalar / distanceFromPlane * dynamicTessellationFactor, 1, 64);
+        output.edges[2] = clamp(distanceScalar / distanceFromPlane * dynamicTessellationFactor, 1, 64);
+        output.edges[3] = clamp(distanceScalar / distanceFromPlane * dynamicTessellationFactor, 1, 64);
 
+        // Set the tessellation factor for tessallating inside the triangle.
+        output.inside[0] = clamp(distanceScalar / distanceFromPlane * dynamicTessellationFactor, 1, 64);
+        output.inside[1] = clamp(distanceScalar / distanceFromPlane * dynamicTessellationFactor, 1, 64);
+    }
    
-    float3 distanceFromPlane = distance(cameraPosition, avgPos);
-    
-
-
-
-    
-    //// Set the tessellation factors for the three edges of the triangle.
-    //output.edges[0] = clamp(30 * EdgeTesellation.x / distanceFromPlane, 1, 64);
-    //output.edges[1] = clamp(30 * EdgeTesellation.x / distanceFromPlane, 1, 64);
-    //output.edges[2] = clamp(30 * EdgeTesellation.x / distanceFromPlane, 1, 64);
-    //output.edges[3] = clamp(30 * EdgeTesellation.x / distanceFromPlane, 1, 64);
-
-    //// Set the tessellation factor for tessallating inside the triangle.
-    //output.inside[0] = clamp(30 * EdgeTesellation.x / distanceFromPlane, 1, 64);
-    //output.inside[1] = clamp(30 * EdgeTesellation.x / distanceFromPlane, 1, 64);
-    
-    
-    output.edges[0] = clamp(100 / distanceFromPlane*EdgeTesellation.x, 1, 64);
-    output.edges[1] = clamp(100 / distanceFromPlane * EdgeTesellation.x, 1, 64);
-    output.edges[2] = clamp(100 / distanceFromPlane * EdgeTesellation.x, 1, 64);
-    output.edges[3] = clamp(100 / distanceFromPlane * EdgeTesellation.x, 1, 64);
-
-   // Set the tessellation factor for tessallating inside the triangle.
-    output.inside[0] = clamp(100 / distanceFromPlane * EdgeTesellation.x, 1, 64);
-    output.inside[1] = clamp(100 / distanceFromPlane * EdgeTesellation.x, 1, 64);
     
 
     return output;

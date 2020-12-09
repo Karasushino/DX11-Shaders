@@ -124,6 +124,8 @@ private:
 	bool renderGrass = true;
 	bool renderWater = true;
 	bool renderPlane = true;
+	//Flag to do activate/deactivate post processing
+	bool togglePostprocess = false;
 
 
 	/*x = Peakness(How sharp the wave is (not amplitude))
@@ -209,10 +211,13 @@ private:
 	Light* pointlight[2];
 
 	//Light Directions
-	float direction[3] = { 1.f };
+	float direction[3] = { 0.7f, -0.7f, 0.f };
 
 	//Light color diffuse
-	float diff[3] = { 0.f };
+	float directionalDiffuse[4] = { 1,1,1,1 };
+	float pointlightDiffuse[4] = { 1,1,1,1 };
+
+
 
 	//Store the depth maps in array to pass to GPU shader 
 	ID3D11ShaderResourceView* pointlightDepthTextures[6*numberOfPointlights];
@@ -234,6 +239,14 @@ private:
 	#pragma endregion
 	float att[3] = { 1.f, 0.175f, 0.0f };
 
+
+	float tessellationFactor = 5.f;
+	float dynamicTessellationFactor = 3.f;
+	bool dynamicTessellationToggle = false;
+	float dystanceScalar = 100.f;
+
+
+	bool wireframe = false;
 	HeightmapShader::CameraBufferType a;
 };
 

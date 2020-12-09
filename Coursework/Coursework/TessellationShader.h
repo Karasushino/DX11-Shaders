@@ -14,9 +14,10 @@ class TessellationShader : public BaseShader
 public:
 
 	struct HullBufferType {
-		XMFLOAT4 Edges;
-		XMFLOAT2 Inside;
-		XMFLOAT2 padding;
+		float tessellationFactor;
+		float dynamicTessellationFactor;
+		bool dynmaicTesellationToggle;
+		float distanceScalar;
 	};
 
 	struct CameraBufferType
@@ -47,11 +48,19 @@ public:
 		XMFLOAT4 EdgeTesellation, XMFLOAT2 InsideTesellation, XMFLOAT3 CameraPosInput, XMFLOAT4 InputWaveSettings[], ID3D11ShaderResourceView* texture,
 		float direction[], float time, float waterOffset, float depthScalar, float Sealevel, float amplitude);
 
+	void setHullShaderParameters(ID3D11DeviceContext* deviceContext, float tessellationFactor, float dynamicTessellationFactor,
+		bool dynmaicTesellationToggle, float distanceScalar);
+
 private:
 	void initShader(const wchar_t* vsFilename, const wchar_t* psFilename);
 	void initShader(const wchar_t* vsFilename, const wchar_t* hsFilename, const wchar_t* dsFilename, const wchar_t* psFilename);
 
 private:
+	HRESULT result;
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+
+
+
 	ID3D11Buffer* matrixBuffer;
 	ID3D11Buffer* hullBuffer;
 	ID3D11Buffer* cameraBuffer;
