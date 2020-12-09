@@ -148,7 +148,7 @@ private:
 	//Settings for Water Color and Level
 	float waterOffset = 4.3f;
 	float depthScalar = 14.f;
-	float Sealevel = 8.f;
+	float Sealevel = 12.f;
 
 	//Region of geometry declarations
 	#pragma region Geometry
@@ -277,11 +277,11 @@ private:
 
 	float textureTiling = 1.f;
 	
-	const char* heightmapsLabel[3] = { "Heightmap 1", "Clift","Coast" };
-	int selectedHeightmap = 0;
+	const char* heightmapsLabel[4] = { "Heightmap 1", "Clift","Coast","Lakes" };
+	int selectedHeightmap = 3;
 
-	const char* textureLabel[3] = { "Moss", "Clift", "Coast" };
-	int selectedTexture = 0;
+	const char* textureLabel[4] = { "Moss", "Clift", "Coast","Lakes" };
+	int selectedTexture = 3;
 
 
 	HeightmapShader::CameraBufferType a;

@@ -117,7 +117,8 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureMgr->loadTexture(L"CliftHeight", L"res/cliftsheight.jpg");
 	textureMgr->loadTexture(L"CoastTexture", L"res/coastTexture.jpg");
 	textureMgr->loadTexture(L"CoastHeight", L"res/coastheight.jpg");
-
+	textureMgr->loadTexture(L"LakeTexture", L"res/lakesTexture.jpg");
+	textureMgr->loadTexture(L"LakeHeight", L"res/lakesheight.jpg");
 
 	textureMgr->loadTexture(L"WindMap", L"res/WaterDistortion.png");
 	textureMgr->loadTexture(L"moss", L"res/Moss0.jpg");
@@ -252,6 +253,9 @@ ID3D11ShaderResourceView* App1::getTerrainHeigthmap()
 	case 2:
 		heightmap = textureMgr->getTexture(L"CoastHeight");
 		break;
+	case 3:
+		heightmap = textureMgr->getTexture(L"LakeHeight");
+		break;
 	default:
 		break;
 	}
@@ -274,6 +278,9 @@ ID3D11ShaderResourceView* App1::getTerrainTexture()
 		break;
 	case 2:
 		texture = textureMgr->getTexture(L"CoastTexture");
+		break;
+	case 3:
+		texture = textureMgr->getTexture(L"LakeTexture");
 		break;
 	default:
 		break;
@@ -864,7 +871,7 @@ void App1::gui()
 	{
 		ImGui::Begin("Terrain Settings", &terrain);
 
-		static const char* selectedItem = heightmapsLabel[0];
+		static const char* selectedItem = heightmapsLabel[selectedHeightmap];
 		//Drop down combo menu to select the heightmap to use
 		if (ImGui::BeginCombo("Heightmaps", selectedItem))
 		{
@@ -890,7 +897,7 @@ void App1::gui()
 
 		//Drop down combo menu to select the texture to use
 
-		static const char* selectedItemT = textureLabel[0];
+		static const char* selectedItemT = textureLabel[selectedTexture];
 		if (ImGui::BeginCombo("Textures", selectedItemT))
 		{
 			for (int i = 0; i < IM_ARRAYSIZE(textureLabel); i++)
