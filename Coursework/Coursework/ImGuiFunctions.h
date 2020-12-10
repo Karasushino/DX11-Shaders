@@ -34,4 +34,17 @@ public:
 			ImGui::EndTooltip();
 		}
 	}
+
+	static void ExclamationmarkTooltip(const char* text)
+	{
+		ImGui::TextColored(ImVec4(1,0,0,1),"(!)");
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::PushTextWrapPos(450.0f);
+			ImGui::TextUnformatted(text);
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+	}
 };

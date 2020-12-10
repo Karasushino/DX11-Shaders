@@ -67,6 +67,25 @@ void TessellationShader::initShader(const wchar_t* vsFilename, const wchar_t* ps
 	renderer->CreateBuffer(&waterColorBufferDesc, NULL, &WaterColorBuffer);
 
 
+	//Lighting buffers
+	//Setup directioanl light buffer
+	//Setup the description of the light dynamic constant buffer that is in the pixel shader.
+	D3D11_BUFFER_DESC lightBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(DirectionalLightBufferType));
+
+	renderer->CreateBuffer(&lightBufferDesc, NULL, &dirLightBuffer);
+
+	//Setup pointlight buffer
+	//Setup the description of the light dynamic constant buffer that is in the pixel shader.
+	D3D11_BUFFER_DESC pointLightDesc = BufferHelpers::CreateBufferDescription(sizeof(PointlightBufferType));
+	renderer->CreateBuffer(&pointLightDesc, NULL, &pointLightBuffer);
+
+	// Setup the description of the dynamic matrix constant buffer of the light that is in the pixel shader.
+	D3D11_BUFFER_DESC lightMatrixBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(LightMatrixBufferType));
+	renderer->CreateBuffer(&lightMatrixBufferDesc, NULL, &lightMatrixBuffer);
+
+	//Sampler for DepthMaps
+	D3D11_SAMPLER_DESC shadowSamplerDesc = BufferHelpers::CreateShadowSamplerDescription();
+	renderer->CreateSamplerState(&shadowSamplerDesc, &sampleStateShadow);
 
 }
 
@@ -121,6 +140,89 @@ void TessellationShader::setPixelShaderParameters(ID3D11DeviceContext* deviceCon
 	deviceContext->PSSetConstantBuffers(2, 1, &WaterColorBuffer);
 
 	deviceContext->PSSetShaderResources(1, 1, &heightTexture);
+}
+
+void TessellationShader::setLightingShaderParameters(ID3D11DeviceContext* deviceContext, Light* directionalLight, Light* pointlight[], ID3D11ShaderResourceView* directionalDepthTex, ID3D11ShaderResourceView* pointDepthTex[], XMMATRIX pointlightViewMatrix[]
+	,bool lightToggle)
+{
+
+	// Map buffer of the directiona light
+	DirectionalLightBufferType* dirLightPtr;
+	deviceContext->Map(dirLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	//Set directional light buffer
+	dirLightPtr = (DirectionalLightBufferType*)mappedResource.pData;
+	dirLightPtr->ambient = directionalLight->getAmbientColour();
+	dirLightPtr->diffuse = directionalLight->getDiffuseColour();
+
+	// Set buffer pointer with pointlight position -->  Note: I hate that I can't do getPosition().xyz, makes line too long.
+	dirLightPtr->direction = XMFLOAT4(directionalLight->getDirection().x, directionalLight->getDirection().y, directionalLight->getDirection().z, (float)lightToggle);
+	dirLightPtr->specularColor = directionalLight->getSpecularColour();
+	dirLightPtr->specularPower = directionalLight->getSpecularPower();
+	dirLightPtr->padding = XMFLOAT3(0, 0, 0);
+	deviceContext->Unmap(dirLightBuffer, 0);
+
+
+	//Map pointlight buffer
+	PointlightBufferType* pointlightPtr;
+	deviceContext->Map(pointLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	pointlightPtr = (PointlightBufferType*)mappedResource.pData;
+
+	//Set buffer data
+	for (size_t i = 0; i < numberOfPointlights; i++)
+	{
+		//Set diffuse color.
+		pointlightPtr->diffuse[i] = pointlight[i]->getDiffuseColour();
+		// Set buffer pointer with pointlight position -->  Note: I hate that I can't do getPosition().xyz, makes line too long.
+		pointlightPtr->position[i] = XMFLOAT4(pointlight[i]->getPosition().x, pointlight[i]->getPosition().y, pointlight[i]->getPosition().z, 0.f);
+		pointlightPtr->attenuation[i] = XMFLOAT4(pointlight[i]->getAttenuationFactors().x, pointlight[i]->getAttenuationFactors().y, pointlight[i]->getAttenuationFactors().z, 0.f);
+
+	}
+
+	deviceContext->Unmap(pointLightBuffer, 0);
+
+	//Set Light Matrices buffer
+	LightMatrixBufferType* lightMatrixPtr;
+	deviceContext->Map(lightMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	lightMatrixPtr = (LightMatrixBufferType*)mappedResource.pData;
+
+	//Directional Light
+	//Get orthomatrix
+	lightMatrixPtr->dirLightProjection = XMMatrixTranspose(directionalLight->getOrthoMatrix());
+	//Need to update view matrix
+	directionalLight->generateViewMatrix();
+	lightMatrixPtr->dirLightView = XMMatrixTranspose(directionalLight->getViewMatrix());
+
+	//Pointlight
+	//For every pointlight send the projection matrix of the pointlight.
+	for (size_t i = 0; i < numberOfPointlights; i++)
+	{
+		//Get projection Matrix of pointlight
+		lightMatrixPtr->pointlightProjection[i] = XMMatrixTranspose(pointlight[i]->getProjectionMatrix());
+	}
+
+	//For every element in view array transpone and send to GPU buffer
+	for (size_t i = 0; i < numberOfPointlights * 6; i++)
+	{
+		lightMatrixPtr->pointlightView[i] = XMMatrixTranspose(pointlightViewMatrix[i]);
+	}
+
+
+	deviceContext->Unmap(lightMatrixBuffer, 0);
+
+	//Set buffers
+	deviceContext->PSSetConstantBuffers(3, 1, &dirLightBuffer);
+	deviceContext->PSSetConstantBuffers(4, 1, &pointLightBuffer);
+	deviceContext->PSSetConstantBuffers(5, 1, &lightMatrixBuffer);
+
+	//Set the Depth Textures for directional light
+	deviceContext->PSSetShaderResources(2, 1, &directionalDepthTex);
+	//Send array of pointlight Depthmaps 
+	deviceContext->PSSetShaderResources(3, numberOfPointlights * 6, pointDepthTex);
+
+	//Set Shadow Sampler
+	deviceContext->PSSetSamplers(1, 1, &sampleStateShadow);
+
 }
 
 

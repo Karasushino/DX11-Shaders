@@ -23,7 +23,7 @@ public:
 	};
 
 	//Define number of Pointlights
-	static const int numberOfPointlights = 1;
+	static const int numberOfPointlights = 2;
 	struct LightMatrixBufferType
 	{
 		//Directional light matrix

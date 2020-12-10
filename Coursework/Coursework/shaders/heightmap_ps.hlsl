@@ -4,7 +4,7 @@ SamplerState Sampler0 : register(s0);
 Texture2D directionalDepthMap : register(t1);
 SamplerState shadowSampler : register(s1);
 
-#define numberOfPointlights 1
+#define numberOfPointlights 2
 
 Texture2D pointlightDepthMap[numberOfPointlights*6] : register(t2);
 
@@ -127,10 +127,13 @@ float4 getPointlightContribution(float shadowMapBias, InputType input)
     for (int i = 0; i < numberOfPointlights; i++)
     {
         //Get light vector
-        float3 lightVector = normalize((float3) position[i] - input.worldPosition);
+        float3 lightVector = (float3) position[i] - input.worldPosition;
         
         //Distance for attenuation calculation = lenght of light vector
         float distance = length(lightVector);
+        
+        //Make sure to normalize the light vector.
+        lightVector = normalize(lightVector);
         
         //Calculate the attenuation scalar value for the diffuse 
         float att = calculateAttenuation((float3) attenuation[i], distance);

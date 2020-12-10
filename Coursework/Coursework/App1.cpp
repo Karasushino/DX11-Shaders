@@ -129,7 +129,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureMgr->loadTexture(L"Noise", L"res/noise.jpg");
 	textureMgr->loadTexture(L"GrassSpawn", L"res/grassNoise.jpg");
 
-	amplitude = 20.0f;
+	amplitude = 24.0f;
 	// Variables for defining shadow map
 	int shadowmapWidth = 2048;
 	int shadowmapHeight = 2048;
@@ -175,24 +175,35 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	//Create PointLight 2.
 	pointlight[1] = new Light;
 	pointlight[1]->setAmbientColour(0.0f, 0.0f, 0.0f, 1.0f);
-	pointlight[1]->setDiffuseColour(0.0f, .0f,0.0f, 1.0f);
+	pointlight[1]->setDiffuseColour(1.0f, 0.0f,0.0f, 1.0f);
 	pointlight[1]->setPosition(50.0f, 10.0f, 50.0f);
 	pointlight[1]->setDirection(1.f, 1.f, 1.0f);
-	pointlight[1]->generateProjectionMatrix(4.f, 100.f);
+	pointlight[1]->generateProjectionMatrix(2.f, 100.f);
 	//Default Attenuation Factors
 	pointlight[1]->setAttenuationFactors(XMFLOAT3(1.f, 0.175f, 0.0f));
 
 
 	
-	//Initialize to defaults
-	for (int i = 0; i < 3; i++)
-	{
-		WaveSettings[i].x = 0.6f;
-		WaveSettings[i].y = 0.4f;
-		WaveSettings[i].w = 1.f;
-		WaveSettings[i].z = 8.f;
-		WaveDirection[i] = 30.f;
-	}
+	//Default values of the Waves.
+
+
+	WaveSettings[0].x = 1.f;
+	WaveSettings[0].y = 1.0f;
+	WaveSettings[0].z = 7.4f;
+	WaveSettings[0].w = 1.f;
+
+	WaveSettings[1].x = 0.6f;
+	WaveSettings[1].y = 1.0f;
+	WaveSettings[1].z = 12.3f;
+	WaveSettings[1].w = 0.6f;
+
+	WaveSettings[2].x = 0.6f;
+	WaveSettings[2].y = 0.8f;
+	WaveSettings[2].z = 8.5f;
+	WaveSettings[2].w = 1.0f;
+
+
+	//
 	
 	smolOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, -screenWidth / 2.7, screenHeight / 2.7);
 	orthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth, screenHeight);	// Full screen size
@@ -223,6 +234,10 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	DepthFieldSettings.z = 9.3f;
 	//Far plane
 	DepthFieldSettings.w = 32.0;
+
+	//Default Camera Position
+	camera->setPosition(8.60f,22.67f,102.63f);
+	camera->setRotation(6.f, 142.f, 0.f);
 }
 
 
@@ -394,10 +409,10 @@ void App1::cameraDepthPass()
 
 	XMMATRIX worldMatrix = renderer->getWorldMatrix();
 
-	// Render terrain
-	planeMesh->sendData(renderer->getDeviceContext());
-	DepthHeightmapShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, camViewMatrix, camProjectionMatrix, amplitude, getTerrainHeigthmap());
-	DepthHeightmapShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
+	//// Render terrain
+	//planeMesh->sendData(renderer->getDeviceContext());
+	//DepthHeightmapShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, camViewMatrix, camProjectionMatrix, amplitude, getTerrainHeigthmap());
+	//DepthHeightmapShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
 
 	XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(ballposition[0], ballposition[1], ballposition[2]);
 
@@ -544,6 +559,9 @@ void App1::firstPass()
 		WaterShader->setPixelShaderParameters(renderer->getDeviceContext(), waterOffset, depthScalar, Sealevel, amplitude, deepColor,shallowColor, getTerrainHeigthmap());
 		WaterShader->setHullShaderParameters(renderer->getDeviceContext(), tessellationFactor, dynamicTessellationFactor,
 			dynamicTessellationToggle, dystanceScalar);
+		WaterShader->setLightingShaderParameters(renderer->getDeviceContext(), directionalLight, pointlight, depthmapDirectional->getDepthMapSRV(), pointlightDepthTextures, pointlightView,lightingWater);
+
+
 		WaterShader->render(renderer->getDeviceContext(), waterPlaneMesh->getIndexCount());
 		renderer->setAlphaBlending(0);
 	}
@@ -764,9 +782,15 @@ void App1::gui()
 	ImGui::BeginMainMenuBar();
 	ImGui::Text("FPS: %.2f", timer->getFPS());
 	ImGui::Text("Time elapsed: %.2f", time);
+	ImGui::Text("Camera Position: X: %.2f Y: %.2f Z: %.2f", camera->getPosition().x, camera->getPosition().y, camera->getPosition().z);
+
+	XMMATRIX cam = camera->getOrthoViewMatrix();
 	ImGui::Checkbox("Wireframe mode", &wireframe);
 	ImGui::EndMainMenuBar();
-
+	ImGui::Begin("Light 1 View");
+	{            ImGui::Image((void*)cameraDepthMap->getDepthMapSRV(), ImVec2(ImGui::GetWindowSize()));
+	}
+	ImGui::End();
 
 	
 	ImGui::Begin("Shader Settings");
@@ -785,7 +809,8 @@ void App1::gui()
 
 		//Resizes slider
 		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.40f);
-
+		//Toggles lighting on water on and off
+		ImGui::Checkbox("Lighting affects water", &lightingWater);
 		//Move the plane up or down
 		ImGui::SliderFloat("Water Level", &Sealevel, -20.0f, 20.0f);
 		
@@ -798,7 +823,7 @@ void App1::gui()
 			ImGui::SliderFloat("Wave Speed: ", &WaveSettings[0].w, 1.0f, 20.0f);
 			//Smootheness
 		//Direction Vector
-			ImGui::SliderAngle("Wave Direction: ", &WaveDirection[0], 0.0f, 360.0f);
+			ImGui::SliderAngle("Wave Direction: ", &WaveDirection[0], 0.0f, 180.0f);
 			ImGui::SliderFloat("Wave Smoothness: ", &WaveSettings[0].x, 0.0f, 1.0f);
 		}
 		ImGui::Separator();
@@ -811,7 +836,7 @@ void App1::gui()
 			ImGui::SliderFloat("Wave 2 Speed: ", &WaveSettings[1].w, 1.0f, 20.0f);
 			//Smootheness
 			//Direction Vector
-			ImGui::SliderAngle("Wave 2 Direction: ", &WaveDirection[1], 0.0f, 360.0f);
+			ImGui::SliderAngle("Wave 2 Direction: ", &WaveDirection[1], 0.0f, 180.0f);
 			ImGui::SliderFloat("Wave 2 Smoothness: ", &WaveSettings[1].x, 0.0f, 1.0f);
 			
 		}
@@ -826,7 +851,7 @@ void App1::gui()
 			ImGui::SliderFloat("Wave 3 Speed: ", &WaveSettings[2].w, 1.0f, 20.0f);
 			//Smootheness
 			//Direction Vector
-			ImGui::SliderFloat("Wave 3 Direction: ", &WaveDirection[2], 0.0f, 360.0f);
+			ImGui::SliderAngle("Wave 3 Direction: ", &WaveDirection[2], 0.0f, 180.0f);
 			ImGui::SliderFloat("Wave 3 Smoothness: ", &WaveSettings[2].x, 0.0f, 1.0f);
 			
 		}
@@ -956,27 +981,39 @@ void App1::gui()
 
 		static bool dirlight = true;
 		static bool pointlightsOff = false;
+
+		ImGui::Checkbox("Lighting affects water", &lightingWater); ImGui::SameLine(); ImGuiFunctions::ExclamationmarkTooltip("If this is active and waves have different directions when all of their amplitudes are bellow 1 it might create non desired results.");
 		ImGui::ColorEdit4("Ambient Light Color", ambientLight, ImGuiColorEditFlags_NoInputs);
 		ImGui::Checkbox("Directional Light", &dirlight);
 		directionalLight->setAmbientColour(ambientLight[0], ambientLight[1], ambientLight[2], ambientLight[3]);
 
-
 		if (!dirlight)
+		{
 			directionalLight->setDiffuseColour(0, 0, 0, 1.f);
+			directionalLight->setSpecularColour(0,0,0,1.f);
+			directionalLight->setSpecularPower(0);
+		}
 		else
+		{
 			directionalLight->setDiffuseColour(directionalDiffuse[0], directionalDiffuse[1], directionalDiffuse[2], 1.f);
+			directionalLight->setSpecularColour(specularColor[0], specularColor[1], specularColor[2], specularColor[3]);
+			directionalLight->setSpecularPower(specularPower);
+		}
 
 		if (ImGui::CollapsingHeader("Directional Light Settings"))
 		{
 			//Lighting bool window
-			ImGui::ColorEdit4("Directional Diffuse", directionalDiffuse, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+			ImGui::ColorEdit4("Directional Diffuse Color", directionalDiffuse, ImGuiColorEditFlags_NoInputs);
+			ImGui::SameLine(); ImGuiFunctions::QuestionmarkTooltip("Click on box to pop up picker.");
 
-			if(dirlight)
-			directionalLight->setDiffuseColour(directionalDiffuse[0], directionalDiffuse[1], directionalDiffuse[2], 1.f);
+			//If its on set it if it isn't don't
+			
 
 			directionalLight->setDirection(direction[0], direction[1], direction[2]);
-			ImGui::SameLine(); ImGui::Text("Directional Diffuse Color Picker"); 
+
+			ImGui::ColorEdit4("Specular Color", specularColor, ImGuiColorEditFlags_NoInputs);
 			ImGui::SameLine(); ImGuiFunctions::QuestionmarkTooltip("Click on box to pop up picker.");
+			ImGui::SliderFloat("Specular Power", &specularPower, 1, 20);
 
 			//This is temporal, will be changed to SliderAngle and calculate vectors on Shader from the angle inputed
 			ImGui::SliderFloat3("Directional Light Direction:", direction, -1.f, 1.f);
@@ -984,7 +1021,8 @@ void App1::gui()
 				direction[0] = 0.000001;
 			if (direction[1] == 0.0f)
 				direction[1] = 0.000001;
-
+			if (direction[2] == 0.0f)
+				direction[2] = 0.000001;
 			
 
 			ImGui::SliderFloat3("Directional Light Position:", position, -50.f, 50.f);
@@ -1009,12 +1047,25 @@ void App1::gui()
 		ImGui::SameLine(); ImGui::Text("Pointlight Diffuse Color Picker");
 		ImGui::SameLine(); ImGuiFunctions::QuestionmarkTooltip("Click on box to pop up picker.");
 
-		ImGui::SliderFloat3("Pointlight Attenuation", att, 0.f, 1.f);
+		ImGui::SliderFloat3("Pointlight Attenuation", pointlightAtt, 0.f, 1.f);
 
+		ImGui::SliderFloat3("Pointlight 2 Position:", pointPosition2, -120.f, 120.f);
+		pointlight[1]->setPosition(pointPosition2[0], pointPosition2[1], pointPosition2[2]);
+
+		ImGui::ColorEdit4("Pointlight 2 Diffuse", pointlightDiffuse2, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+		pointlight[1]->setDiffuseColour(pointlightDiffuse2[0], pointlightDiffuse2[1], pointlightDiffuse2[2], 1.f);
+
+
+		ImGui::SameLine(); ImGui::Text("Pointlight Diffuse Color Picker");
+		ImGui::SameLine(); ImGuiFunctions::QuestionmarkTooltip("Click on box to pop up picker.");
+
+		ImGui::SliderFloat3("Pointlight 2 Attenuation", pointlightAtt2, 0.f, 1.f);
 
 		ImGui::SliderFloat3("Sphere position:", ballposition, -50.f, 50.f);
 
-		pointlight[0]->setAttenuationFactors(XMFLOAT3(att[0], att[1], att[2]));
+		pointlight[0]->setAttenuationFactors(XMFLOAT3(pointlightAtt[0], pointlightAtt[1], pointlightAtt[2]));
+		pointlight[1]->setAttenuationFactors(XMFLOAT3(pointlightAtt2[0], pointlightAtt2[1], pointlightAtt2[2]));
+
 		ImGui::End();
 	}
 

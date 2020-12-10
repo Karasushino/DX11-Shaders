@@ -44,18 +44,16 @@ void HeightmapShader::initShader(const wchar_t* vsFilename, const wchar_t* psFil
 
 	//Sampler for DepthMaps
 	D3D11_SAMPLER_DESC shadowSamplerDesc = BufferHelpers::CreateShadowSamplerDescription();
-	renderer->CreateSamplerState(&samplerDesc, &sampleStateShadow);
+	renderer->CreateSamplerState(&shadowSamplerDesc, &sampleStateShadow);
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
 	D3D11_BUFFER_DESC matrixBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(MatrixBufferType));
 	renderer->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
 
-	// Setup the description of the dynamic matrix constant buffer that is in the pixel shader.
+	// Setup the description of the dynamic matrix constant buffer of the light that is in the pixel shader.
 	D3D11_BUFFER_DESC lightMatrixBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(LightMatrixBufferType));
 	renderer->CreateBuffer(&lightMatrixBufferDesc, NULL, &lightMatrixBuffer);
 	
-
-
 
 
 	// Setup the description of the dynamic matrix constant buffer that is in the hull shader.
@@ -172,7 +170,7 @@ void HeightmapShader::setShaderParameters(ID3D11DeviceContext* deviceContext, co
 	deviceContext->Unmap(pointLightBuffer, 0);
 
 
-	//Set pointlight light buffer
+	//Set Light Matrices buffer
 	LightMatrixBufferType* lightMatrixPtr;
 	deviceContext->Map(lightMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	lightMatrixPtr = (LightMatrixBufferType*)mappedResource.pData;

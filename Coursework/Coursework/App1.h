@@ -135,20 +135,21 @@ private:
 	/*x = Peakness(How sharp the wave is (not amplitude))
 	  y = amplitude
 	  z = frequency
-	  w = speed*/
+	  w = speed
+	  */
 	XMFLOAT4 WaveSettings[3];
 
-	//Angle of wave (direction)
-	float WaveDirection[3] = { 0.f };
+	//Angle of wave (direction) (default must be in radiants)
+	float WaveDirection[3] = { 2.0618f ,3.15f,1.13f };
 
 	//Time passed
 	float time = 0.f;
 
 	
 	//Settings for Water Color and Level
-	float waterOffset = 4.3f;
-	float depthScalar = 14.f;
-	float Sealevel = 12.f;
+	float waterOffset = 0.0f;
+	float depthScalar = 17.f;
+	float Sealevel = 14.f;
 
 	//Region of geometry declarations
 	#pragma region Geometry
@@ -202,17 +203,19 @@ private:
 
 	//All Lighting Related
 	#pragma region Lighting 
-	const static int numberOfPointlights = 1;
+	const static int numberOfPointlights = 2;
 
 	//Position of dir light
 	float position[3] = {50.f,50.f,50.f};
 
 
-	//Position of dir light
+	//Position of point light
 	float pointPosition[3] = { 50.f,15.f,50.f };
+	//Position of pointlight 2
+	float pointPosition2[3] = { 50.f,15.f,50.f };
 	//Light data and settings.
 	Light* directionalLight;
-	Light* pointlight[2];
+	Light* pointlight[numberOfPointlights];
 
 	//Light Directions
 	float direction[3] = { 0.7f, -0.7f, 0.f };
@@ -220,7 +223,9 @@ private:
 	//Light color diffuse
 	float directionalDiffuse[4] = { 1,1,1,1 };
 	float pointlightDiffuse[4] = { 1,1,1,1 };
-
+	float pointlightAtt[3] = { 1.f, 0.175f, 0.0f };
+	float pointlightAtt2[3] = { 1.f, 0.175f, 0.0f };
+	float pointlightDiffuse2[4] = { 1,0,0,1 };
 
 
 	//Store the depth maps in array to pass to GPU shader 
@@ -241,7 +246,7 @@ private:
 	};
 
 	#pragma endregion
-	float att[3] = { 1.f, 0.175f, 0.0f };
+	
 
 	//Water tessellation factors
 	float tessellationFactor = 5.f;
@@ -282,6 +287,11 @@ private:
 
 	const char* textureLabel[4] = { "Moss", "Clift", "Coast","Lakes" };
 	int selectedTexture = 3;
+
+	bool lightingWater = true;
+
+	float specularPower = 10.f; 
+	float specularColor[4] = { 1.f,1.f,1.f,1.f };
 
 
 	HeightmapShader::CameraBufferType a;

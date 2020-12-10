@@ -1,8 +1,8 @@
-# CMP301-Starter
-Starter application for CMP301 coursework
-Updated for 2020
+# CMP301-Toni Carrascosa Coursework
+Coursework project of Toni Carrascosa Vallori
+Submitted on 2021
 
 Name: Antoni Carrascosa Vallori
+Student Number: 1800275
 
-Number: 1800275
-
+Public Trello Plan Board: https://trello.com/b/IIkBPVX4/cmp301-dx11-shaders
