@@ -83,60 +83,172 @@ void App1::style()
 
 void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeight, Input *in, bool VSYNC, bool FULL_SCREEN)
 {
-	// Call super/parent init function (required!)
+	// Call Super Init Function (Required!)
 	BaseApplication::init(hinstance, hwnd, screenWidth, screenHeight, in, VSYNC, FULL_SCREEN);
+
+	//Initialize Custom ImGui Style (from github)
 	style();
 
-
-	// Create Mesh object and shader object
-	mesh = new TessellationMesh(renderer->getDevice(), renderer->getDeviceContext());
-	CubeShadow = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
-
-
-	planeMesh = new QuadPlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 120);
-	waterPlaneMesh = new QuadPlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 120);
-
-	PlaneShader = new HeightmapShader(renderer->getDevice(), hwnd);
-	WaterShader = new TessellationShader(renderer->getDevice(), hwnd);
-	DepthHeightmapShader = new DepthShaderHeightmap(renderer->getDevice(), hwnd);
-	depthShader = new DepthShader(renderer->getDevice(), hwnd);
-	textureShader = new TextureShader(renderer->getDevice(), hwnd);
-	grassShader = new GeometryShader(renderer->getDevice(), hwnd);
-	cubeShader = new LightedTextureShader(renderer->getDevice(), hwnd);
-	depthFieldShader = new DepthOfFieldShader(renderer->getDevice(), hwnd);
-
-
-	grassShaderDepth = new GeometryShaderDepth(renderer->getDevice(), hwnd);
-
-	grassMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 120);
-
-	//EdgeTesellation = XMFLOAT4(1.0f, 1.0f, 1.0f,1.0f);
-	//InsideTesellation = XMFLOAT2(1.0f, 1.0f);
-
-	textureMgr->loadTexture(L"CliftTexture", L"res/cliftsTexture.jpg");
-	textureMgr->loadTexture(L"CliftHeight", L"res/cliftsheight.jpg");
-	textureMgr->loadTexture(L"CoastTexture", L"res/coastTexture.jpg");
-	textureMgr->loadTexture(L"CoastHeight", L"res/coastheight.jpg");
-	textureMgr->loadTexture(L"LakeTexture", L"res/lakesTexture.jpg");
-	textureMgr->loadTexture(L"LakeHeight", L"res/lakesheight.jpg");
-
-	textureMgr->loadTexture(L"WindMap", L"res/WaterDistortion.png");
-	textureMgr->loadTexture(L"moss", L"res/Moss0.jpg");
-	
-	textureMgr->loadTexture(L"height", L"res/height.jpg");
-
-	textureMgr->loadTexture(L"water", L"res/water.jpg");
-	textureMgr->loadTexture(L"Noise", L"res/noise.jpg");
-	textureMgr->loadTexture(L"GrassSpawn", L"res/grassNoise.jpg");
-
-	amplitude = 24.0f;
-	// Variables for defining shadow map
-	int shadowmapWidth = 2048;
-	int shadowmapHeight = 2048;
+	//Scene Height and Width
 	int sceneWidth = 200;
 	int sceneHeight = 200;
+
+
+	//Default Camera Position
+	camera->setPosition(8.60f, 22.67f, 102.63f);
+	camera->setRotation(6.f, 142.f, 0.f);
+
+	//Texture Loading function calls
+	#pragma region All Texture Loading
+
+	//Terrain Heightmap Textures
+	textureMgr->loadTexture(L"LakeHeight", L"res/lakesheight.jpg");
+	textureMgr->loadTexture(L"CliftHeight", L"res/cliftsheight.jpg");
+	textureMgr->loadTexture(L"CoastHeight", L"res/coastheight.jpg");
+	textureMgr->loadTexture(L"height", L"res/height.jpg"); //The provided Default heightmap
+
+	//Terrain Color Textures
+	textureMgr->loadTexture(L"CliftTexture", L"res/cliftsTexture.jpg");
+	textureMgr->loadTexture(L"CoastTexture", L"res/coastTexture.jpg");
+	textureMgr->loadTexture(L"LakeTexture", L"res/lakesTexture.jpg");
+	textureMgr->loadTexture(L"moss", L"res/Moss0.jpg"); //Extra optional generic texture.
+
+	//DuDv map for grass sway
+	textureMgr->loadTexture(L"WindMap", L"res/dudvmap.jpg");
+	
+
+	
+	 //Noise map for Rotation of grass.
+	textureMgr->loadTexture(L"Noise", L"res/noise.jpg");
+	textureMgr->loadTexture(L"GrassSpawn", L"res/grassNoise.jpg");
+	#pragma endregion
+
+	//Basic Geometry and Basic Shaders (Including Pointlight Gyzmos)
+	#pragma region Basic Shaders and Geometry
+
+	// Create the sphere object use to demostrate shadows working.
+	CubeShadow = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
+
+	//Objects
+	//Pointlight Gyzmo mesh of pointlight 1
+	pointlightGyzmos1 = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext(), 5);
+	//Pointlight Gyzmo mesh of pointlight 2
+	pointlightGyzmos2 = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext(), 5);
+
+	//Shaders
+	//Basic Depth shader for any simple geometry.
+	depthShader = new DepthShader(renderer->getDevice(), hwnd);
+	//Simple Shader that renders basic geometry with a texture.
+	textureShader = new TextureShader(renderer->getDevice(), hwnd);
+
+
+	#pragma endregion
+
+	//Terrain Shaders and Geometry
+	#pragma region Terrain Initializations
+
+	//The plane of the Terrain
+	planeMesh = new QuadPlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 120);
+	
+	//Shader used for the Terrain, using a heightmap.
+	PlaneShader = new HeightmapShader(renderer->getDevice(), hwnd);
+	
+	//Optimized shader using only relevant data to render geometry of the terrain for a depth pass.
+	DepthHeightmapShader = new DepthShaderHeightmap(renderer->getDevice(), hwnd);
+	
+	#pragma endregion
+	
+	//Post Processing Shaders, Rendertextures and ortomeshes
+	#pragma region Post Processing Initializations
+
+	//Main Render Texture of Scene
+	renderTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
+
+		//All Rendertextures and Orthomeshes initializations
+		#pragma region Orthomeshes and RenderTextures
+		//Orthomeshes for Post Processing
+		orthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth, screenHeight);	// Full screen size
+		downSampleOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 1.2f, screenHeight / 1.2f); //Downsample ortho
+
+
+		//Post processing render Textures
+		horizontalBlurredSceneTexture = new RenderTexture(renderer->getDevice(), screenWidth / 1.2f, screenHeight / 1.2f, SCREEN_NEAR, SCREEN_DEPTH);
+		verticalBlurredSceneTexture = new RenderTexture(renderer->getDevice(), screenWidth / 1.2f, screenHeight / 1.2f, SCREEN_NEAR, SCREEN_DEPTH);
+		upsampleTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
+		downSampleTexture = new RenderTexture(renderer->getDevice(), screenWidth / 1.2f, screenHeight / 1.2f, SCREEN_NEAR, SCREEN_DEPTH);
+		depthOfFieldTexture = new RenderTexture(renderer->getDevice(), screenWidth / 1.2f, screenHeight / 1.2f, SCREEN_NEAR, SCREEN_DEPTH);
+
+		//Post Processing Shaders
+		horizontalBlurShader = new HorizontalBlurShader(renderer->getDevice(), hwnd);
+		verticalBlurShader = new VerticalBlurShader(renderer->getDevice(), hwnd);
+		depthFieldShader = new DepthOfFieldShader(renderer->getDevice(), hwnd);
+		#pragma endregion
+
+		//Default Depth of Field parameters
+		#pragma region Default Depth of Field Values
+
+		//Distance Focus
+		DepthFieldSettings.x = 0.f;
+		//Focus Range
+		DepthFieldSettings.y = 6.7f;
+		//Close plane
+		DepthFieldSettings.z = 9.3f;
+		//Far plane
+		DepthFieldSettings.w = 32.0;
+
+		#pragma endregion
+
+	#pragma endregion
+
+	//Water Shaders and Geometry
+	#pragma region Water Shader Initializations
+	//The plane of the Water
+	waterPlaneMesh = new QuadPlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 120);
+	//Shaders that uses Trochoidal waves to create realistic water simulation.
+	WaterShader = new TessellationShader(renderer->getDevice(), hwnd);
+
+	//Default values of the Waves.
+		#pragma region Water Waves Defaults
+		//1st wave
+		WaveSettings[0].x = 1.f;
+		WaveSettings[0].y = 1.0f;
+		WaveSettings[0].z = 7.4f;
+		WaveSettings[0].w = 1.f;
+
+		//2nd Wave
+		WaveSettings[1].x = 0.6f;
+		WaveSettings[1].y = 1.0f;
+		WaveSettings[1].z = 12.3f;
+		WaveSettings[1].w = 0.6f;
+
+		//3rd Wave
+		WaveSettings[2].x = 0.6f;
+		WaveSettings[2].y = 0.8f;
+		WaveSettings[2].z = 8.5f;
+		WaveSettings[2].w = 1.0f;
+		#pragma endregion
+
+	#pragma endregion
+
+	//Grass Shaders and Geometry
+	#pragma region Grass Shader Initializations
+
+	//Plane of the Grass.
+	grassMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 120);
+
+	//Optimized shader for depth pass calculation (not currectly working need to FIX)
+	grassShaderDepth = new GeometryShaderDepth(renderer->getDevice(), hwnd);
+	
+
+	//Shader responsible of the Generation of the Grass plane. 
+	grassShader = new GeometryShader(renderer->getDevice(), hwnd);
+
+	#pragma endregion
+
 	//Lights
-	//Create Directional Light.
+	#pragma region Lighting Initialization and Defaults
+
+	//Create Directional Light and set Defaults.
 	directionalLight = new Light;
 	directionalLight->setAmbientColour(0.35f, 0.35f, 0.35f, 1.0f);
 	directionalLight->setDiffuseColour(1.0f, 1.0f, 1.0f, 1.0f);
@@ -146,22 +258,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	directionalLight->generateOrthoMatrix((float)sceneWidth, (float)sceneHeight, 2.f, 100.f);
 
 
-
-
-	depthmapDirectional = new ShadowMap(renderer->getDevice(), shadowmapWidth, shadowmapHeight);
-	cameraDepthMap = new ShadowMap(renderer->getDevice(), shadowmapWidth, shadowmapHeight);
-	
-	//Initialize all shadowmaps
-	for (size_t i = 0; i < numberOfPointlights*6; i++)
-	{
-		pointlightShadows[i] = new ShadowMap(renderer->getDevice(), shadowmapWidth, shadowmapHeight);
-	}
-
-
-	//Default Attenuation Factors
-	//No attenuation for directional light
-	// light[0]->setAttenuationFactors(XMFLOAT3(0.f, 0.0f, 0.0f));
-
+	//Default Pointlight Light Values
 	//Create PointLight 1.
 	pointlight[0] = new Light;
 	pointlight[0]->setAmbientColour(0.0f, 0.0f, 0.0f, 1.0f);
@@ -182,62 +279,28 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	//Default Attenuation Factors
 	pointlight[1]->setAttenuationFactors(XMFLOAT3(1.f, 0.175f, 0.0f));
 
-
+	#pragma endregion
 	
-	//Default values of the Waves.
+	//Depth Map initialization
+	#pragma region Depthmaps
 
+	//Variables for defining shadow map parameters
+	int shadowmapWidth = 2048;
+	int shadowmapHeight = 2048;
 
-	WaveSettings[0].x = 1.f;
-	WaveSettings[0].y = 1.0f;
-	WaveSettings[0].z = 7.4f;
-	WaveSettings[0].w = 1.f;
+	//Initialize Directional Shadowmap.
+	depthmapDirectional = new ShadowMap(renderer->getDevice(), shadowmapWidth, shadowmapHeight);
+	//Initialize the Camera depth map.
+	cameraDepthMap = new ShadowMap(renderer->getDevice(), shadowmapWidth, shadowmapHeight);
 
-	WaveSettings[1].x = 0.6f;
-	WaveSettings[1].y = 1.0f;
-	WaveSettings[1].z = 12.3f;
-	WaveSettings[1].w = 0.6f;
+	//Initialize ALL Shadowmaps of Pointlights
+	for (size_t i = 0; i < numberOfPointlights * 6; i++)
+	{
+		pointlightShadows[i] = new ShadowMap(renderer->getDevice(), shadowmapWidth, shadowmapHeight);
+	}
 
-	WaveSettings[2].x = 0.6f;
-	WaveSettings[2].y = 0.8f;
-	WaveSettings[2].z = 8.5f;
-	WaveSettings[2].w = 1.0f;
+	#pragma endregion
 
-
-	//
-	
-	smolOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, -screenWidth / 2.7, screenHeight / 2.7);
-	orthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth, screenHeight);	// Full screen size
-	downSampleOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth/ 1.2f, screenHeight/ 1.2f); //downsample ortho
-
-	//Render Texture
-	renderTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
-
-	//Post processing render textures
-	horizontalBlurredSceneTexture = new RenderTexture(renderer->getDevice(), screenWidth/1.2f, screenHeight/ 1.2f, SCREEN_NEAR, SCREEN_DEPTH);
-	verticalBlurredSceneTexture = new RenderTexture(renderer->getDevice(), screenWidth/ 1.2f, screenHeight/ 1.2f, SCREEN_NEAR, SCREEN_DEPTH);
-	upsampleTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
-	downSampleTexture = new RenderTexture(renderer->getDevice(), screenWidth/ 1.2f, screenHeight/ 1.2f, SCREEN_NEAR, SCREEN_DEPTH);
-	depthOfFieldTexture = new RenderTexture(renderer->getDevice(), screenWidth / 1.2f, screenHeight / 1.2f, SCREEN_NEAR, SCREEN_DEPTH);
-
-	//Post Processing Shaders
-	horizontalBlurShader = new HorizontalBlurShader(renderer->getDevice(), hwnd);
-	verticalBlurShader = new VerticalBlurShader(renderer->getDevice(), hwnd);
-	depthFieldShader = new DepthOfFieldShader(renderer->getDevice(), hwnd);
-
-
-	//Depth of Field parameters
-	//Distance Focus
-	DepthFieldSettings.x = 0.f;
-	//Focus Range
-	DepthFieldSettings.y = 6.7f;
-	//Close plane
-	DepthFieldSettings.z = 9.3f;
-	//Far plane
-	DepthFieldSettings.w = 32.0;
-
-	//Default Camera Position
-	camera->setPosition(8.60f,22.67f,102.63f);
-	camera->setRotation(6.f, 142.f, 0.f);
 }
 
 
@@ -335,6 +398,7 @@ bool App1::render()
 	depthPass();
 	cameraDepthPass();
 	pointlightDepthPass();
+
 	//Render the scene
 	firstPass();
 
@@ -409,10 +473,10 @@ void App1::cameraDepthPass()
 
 	XMMATRIX worldMatrix = renderer->getWorldMatrix();
 
-	//// Render terrain
-	//planeMesh->sendData(renderer->getDeviceContext());
-	//DepthHeightmapShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, camViewMatrix, camProjectionMatrix, amplitude, getTerrainHeigthmap());
-	//DepthHeightmapShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
+	// Render terrain
+	planeMesh->sendData(renderer->getDeviceContext());
+	DepthHeightmapShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, camViewMatrix, camProjectionMatrix, amplitude, getTerrainHeigthmap());
+	DepthHeightmapShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
 
 	XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(ballposition[0], ballposition[1], ballposition[2]);
 
@@ -421,12 +485,17 @@ void App1::cameraDepthPass()
 	depthShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, camViewMatrix, camProjectionMatrix);
 	depthShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
 
-	// Render terrain
-	grassMesh->sendData(renderer->getDeviceContext());
-	grassShaderDepth->setShaderParameters(renderer->getDeviceContext(), worldMatrix, camViewMatrix, camProjectionMatrix, textureMgr->getTexture(L"WindMap"), time, getTerrainHeigthmap(),
-		textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"), amplitude);
-	grassShaderDepth->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
+	//Render Grass with Geometry Cull turned Off
+	renderer->setNoCullMode(true);
+	grassMesh->sendData(renderer->getDeviceContext(), D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+	grassShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, camViewMatrix, camProjectionMatrix, textureMgr->getTexture(L"WindMap"), getTerrainHeigthmap(),
+		textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"), amplitude, directionalLight, depthmapDirectional->getDepthMapSRV());
 
+	grassShader->setPixelShaderParameters(renderer->getDeviceContext(), bottomGrassColor, topGrassColor);
+	grassShader->setHullshaderParameters(renderer->getDeviceContext(), grassDensity);
+	grassShader->setGeometryShaderParameters(renderer->getDeviceContext(), grassMaxHeight, grassWidth, windStrength, windFrequency, time, grassSpawnThreshold);
+	grassShader->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
+	renderer->setNoCullMode(false);
 
 	// Set back buffer as render target and reset view port.
 	renderer->setBackBufferRenderTarget();
@@ -500,12 +569,9 @@ void App1::firstPass()
 
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix;
 
-	// Clear the scene. (default blue colour)
-	//renderer->beginScene(0.39f, 0.58f, 0.92f, 1.0f);
-
 	// Set the render target to be the render to texture and clear it
 	renderTexture->setRenderTarget(renderer->getDeviceContext());
-	renderTexture->clearRenderTarget(renderer->getDeviceContext(), 0.0f, 0.0f, 1.0f, 1.0f);
+	renderTexture->clearRenderTarget(renderer->getDeviceContext(), 0.258, 0.835, 0.843, 1.0f);
 
 	// Generate the view matrix based on the camera's position.
 	camera->update();
@@ -519,7 +585,7 @@ void App1::firstPass()
 	viewMatrix = camera->getViewMatrix();
 	projectionMatrix = renderer->getProjectionMatrix();
 
-
+	//Render Terrain Plane
 	if (renderPlane)
 	{
 
@@ -532,7 +598,7 @@ void App1::firstPass()
 		PlaneShader->render(renderer->getDeviceContext(), planeMesh->getIndexCount());
 	}
 
-
+	//Render Grass Plane
 	if (renderGrass)
 	{
 		renderer->setNoCullMode(true);
@@ -549,6 +615,7 @@ void App1::firstPass()
 		renderer->setNoCullMode(false);
 	}
 
+	//Render Water Plane
 	if (renderWater)
 	{
 		XMMATRIX waterWorldMatrix = worldMatrix * XMMatrixTranslation(0.0f, Sealevel, 0.0f);
@@ -558,7 +625,7 @@ void App1::firstPass()
 		WaveSettings, WaveDirection, time);
 		WaterShader->setPixelShaderParameters(renderer->getDeviceContext(), waterOffset, depthScalar, Sealevel, amplitude, deepColor,shallowColor, getTerrainHeigthmap());
 		WaterShader->setHullShaderParameters(renderer->getDeviceContext(), tessellationFactor, dynamicTessellationFactor,
-			dynamicTessellationToggle, dystanceScalar);
+			dynamicTessellationToggle, distanceScalar);
 		WaterShader->setLightingShaderParameters(renderer->getDeviceContext(), directionalLight, pointlight, depthmapDirectional->getDepthMapSRV(), pointlightDepthTextures, pointlightView,lightingWater);
 
 
@@ -566,32 +633,30 @@ void App1::firstPass()
 		renderer->setAlphaBlending(0);
 	}
 
-	
-	////Debuging window
-	//smolOrthoMesh->sendData(renderer->getDeviceContext());
-	//XMMATRIX orthoMatrix = renderer->getOrthoMatrix();
-	//XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();
-	//textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, depthmapDirectional->getDepthMapSRV());
-	//textureShader->render(renderer->getDeviceContext(), smolOrthoMesh->getIndexCount());
-
+	//Render Sphere to demonstrate Shadows.
 	XMMATRIX cubeWorldMatrix = worldMatrix * XMMatrixTranslation(ballposition[0], ballposition[1], ballposition[2]);
 	CubeShadow->sendData(renderer->getDeviceContext());
 	textureShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"));
 	textureShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
 
-	
+	//Render Pointlight 1 Gyzmos.
+	XMMATRIX pointlightMatrix = worldMatrix * XMMatrixScaling(0.5f, 0.5f, 0.5f) * XMMatrixTranslation(pointlight[0]->getPosition().x , pointlight[0]->getPosition().y, pointlight[0]->getPosition().z);
+	pointlightGyzmos1->sendData(renderer->getDeviceContext());
+	textureShader->setShaderParameters(renderer->getDeviceContext(), pointlightMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"));
+	textureShader->render(renderer->getDeviceContext(), pointlightGyzmos1->getIndexCount());
+
+	//Render Pointlight 2 Gyzmos.
+	XMMATRIX pointlightMatrix2 = worldMatrix * XMMatrixScaling(0.5f, 0.5f, 0.5f) * XMMatrixTranslation(pointlight[1]->getPosition().x, pointlight[1]->getPosition().y, pointlight[1]->getPosition().z);
+	pointlightGyzmos2->sendData(renderer->getDeviceContext());
+	textureShader->setShaderParameters(renderer->getDeviceContext(), pointlightMatrix2, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"));
+	textureShader->render(renderer->getDeviceContext(), pointlightGyzmos2->getIndexCount());
+
 
 	//Set it always to walse so it doens't get beyond this point and wareframe render textures
 	renderer->setWireframeMode(false);
 	// Swap the buffers
 	renderer->setBackBufferRenderTarget();
 
-	//renderer->endScene();
-
-
-	
-
-	//return true;
 }
 
 void App1::downsample()
@@ -682,27 +747,22 @@ void App1::depthOfFieldPass()
 {
 	XMMATRIX worldMatrix, baseViewMatrix, orthoMatrix;
 
-	XMFLOAT2 screenSize = XMFLOAT2(depthOfFieldTexture->getTextureWidth(), depthOfFieldTexture->getTextureHeight());
-
 	depthOfFieldTexture->setRenderTarget(renderer->getDeviceContext());
 	depthOfFieldTexture->clearRenderTarget(renderer->getDeviceContext(), 1.0f, 1.0f, 1.0f, 1.0f);
 
-	//Don't clear, overwrite the horizontal blured one.
-	//blurredScene->clearRenderTarget(renderer->getDeviceContext(), 0.0f, 1.0f, 1.0f, 1.0f);
-
 	worldMatrix = renderer->getWorldMatrix();
 	baseViewMatrix = camera->getOrthoViewMatrix();
-	// Get the ortho matrix from the render to texture since texture has different dimensions being that it is smaller.
+	//Get the ortho matrix from the render to texture since texture has different dimensions being that it is smaller.
 	orthoMatrix = depthOfFieldTexture->getOrthoMatrix();
 
-	// Render for Vertical Blur
+	//Render for Vertical Blur
 	renderer->setZBuffer(false);
 	downSampleOrthoMesh->sendData(renderer->getDeviceContext());
 	depthFieldShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, downSampleTexture->getShaderResourceView(),
 		verticalBlurredSceneTexture->getShaderResourceView(),cameraDepthMap->getDepthMapSRV(),DepthFieldSettings);
 	depthFieldShader->render(renderer->getDeviceContext(), downSampleOrthoMesh->getIndexCount());
 	renderer->setZBuffer(true);
-	//verticalBlurredSceneTexture->clearRenderTarget(renderer->getDeviceContext(), 1.0f, 0.0f, 0.0f, 1.0f);
+
 	// Reset the render target back to the original back buffer and not the render to texture anymore.
 	renderer->setBackBufferRenderTarget();
 }
@@ -712,26 +772,22 @@ void App1::upSampleTexture()
 
 	XMMATRIX worldMatrix, baseViewMatrix, orthoMatrix;
 
-
 	upsampleTexture->setRenderTarget(renderer->getDeviceContext());
 	upsampleTexture->clearRenderTarget(renderer->getDeviceContext(), 1.0f, 1.0f, 1.0f, 1.0f);
 
-	//Don't clear, overwrite the horizontal blured one.
-	//blurredScene->clearRenderTarget(renderer->getDeviceContext(), 0.0f, 1.0f, 1.0f, 1.0f);
-
 	worldMatrix = renderer->getWorldMatrix();
 	baseViewMatrix = camera->getOrthoViewMatrix();
-	// Get the ortho matrix from the render to texture since texture has different dimensions being that it is smaller.
+	//Get the full resolution ortho matrix from the render to texture.
 	orthoMatrix = upsampleTexture->getOrthoMatrix();
 
-	// Render for Vertical Blur
+	//Render for Vertical Blur
 	renderer->setZBuffer(false);
 	orthoMesh->sendData(renderer->getDeviceContext());
 	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, depthOfFieldTexture->getShaderResourceView());
 	textureShader->render(renderer->getDeviceContext(), orthoMesh->getIndexCount());
 	renderer->setZBuffer(true);
 	
-	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	//Reset the render target back to the original back buffer and not the render to texture anymore.
 	renderer->setBackBufferRenderTarget();
 
 }
@@ -779,23 +835,19 @@ void App1::gui()
 	renderer->getDeviceContext()->GSSetShader(NULL, NULL, 0);
 	renderer->getDeviceContext()->HSSetShader(NULL, NULL, 0);
 	renderer->getDeviceContext()->DSSetShader(NULL, NULL, 0);
+
+	//Main Menu Bar Start
 	ImGui::BeginMainMenuBar();
 	ImGui::Text("FPS: %.2f", timer->getFPS());
 	ImGui::Text("Time elapsed: %.2f", time);
 	ImGui::Text("Camera Position: X: %.2f Y: %.2f Z: %.2f", camera->getPosition().x, camera->getPosition().y, camera->getPosition().z);
-
-	XMMATRIX cam = camera->getOrthoViewMatrix();
-	ImGui::Checkbox("Wireframe mode", &wireframe);
 	ImGui::EndMainMenuBar();
-	ImGui::Begin("Light 1 View");
-	{            ImGui::Image((void*)cameraDepthMap->getDepthMapSRV(), ImVec2(ImGui::GetWindowSize()));
-	}
-	ImGui::End();
+	//End Menu Bar
 
-	
+
+	//Start Main UI
 	ImGui::Begin("Shader Settings");
 	ImGui::TextWrapped("Click on the buttons to open their settings."); 
-
 	
 	//Water bool
 	static bool mizu = false;
@@ -875,7 +927,7 @@ void App1::gui()
 			if (dynamicTessellationToggle)
 			{
 				ImGui::SliderFloat("Dynamic Factor", &dynamicTessellationFactor, 0, 15);
-				ImGui::SliderFloat("Distance Scalar", &dystanceScalar, 1, 150);
+				ImGui::SliderFloat("Distance Scalar", &distanceScalar, 1, 150);
 			}
 			else
 				ImGui::SliderFloat("Tessellation Factor", &tessellationFactor,0,25);
@@ -978,7 +1030,7 @@ void App1::gui()
 		ImGui::Begin("Lighting Settings", &lighting);
 		//Resizes slider
 		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.40f);
-
+	
 		static bool dirlight = true;
 		static bool pointlightsOff = false;
 
@@ -1007,7 +1059,6 @@ void App1::gui()
 			ImGui::SameLine(); ImGuiFunctions::QuestionmarkTooltip("Click on box to pop up picker.");
 
 			//If its on set it if it isn't don't
-			
 
 			directionalLight->setDirection(direction[0], direction[1], direction[2]);
 
@@ -1036,35 +1087,39 @@ void App1::gui()
 		
 
 		
+		if (ImGui::CollapsingHeader("Pointlight Settings"))
+		{
+			ImGui::SliderFloat3("Pointlight 1 Position:", pointPosition, 0.f, 120.f);
+			pointlight[0]->setPosition(pointPosition[0], pointPosition[1], pointPosition[2]);
+
+			ImGui::ColorEdit4("Pointlight Diffuse", pointlightDiffuse, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+			pointlight[0]->setDiffuseColour(pointlightDiffuse[0], pointlightDiffuse[1], pointlightDiffuse[2], 1.f);
+
+
+			ImGui::SameLine(); ImGui::Text("Pointlight Diffuse Color Picker");
+			ImGui::SameLine(); ImGuiFunctions::QuestionmarkTooltip("Click on box to pop up picker.");
+
+			ImGui::SliderFloat3("Pointlight Attenuation", pointlightAtt, 0.f, 1.f);
+
+			ImGui::SliderFloat3("Pointlight 2 Position:", pointPosition2, 0.f, 120.f);
+			pointlight[1]->setPosition(pointPosition2[0], pointPosition2[1], pointPosition2[2]);
+
+			ImGui::ColorEdit4("Pointlight 2 Diffuse", pointlightDiffuse2, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+			pointlight[1]->setDiffuseColour(pointlightDiffuse2[0], pointlightDiffuse2[1], pointlightDiffuse2[2], 1.f);
+
+
+			ImGui::SameLine(); ImGui::Text("Pointlight Diffuse Color Picker");
+			ImGui::SameLine(); ImGuiFunctions::QuestionmarkTooltip("Click on box to pop up picker.");
+
+			ImGui::SliderFloat3("Pointlight 2 Attenuation", pointlightAtt2, 0.f, 1.f);
+
 			
-		ImGui::SliderFloat3("Pointlight 1 Position:", pointPosition, -120.f, 120.f);
-		pointlight[0]->setPosition(pointPosition[0], pointPosition[1], pointPosition[2]);
 
-		ImGui::ColorEdit4("Pointlight Diffuse", pointlightDiffuse, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
-		pointlight[0]->setDiffuseColour(pointlightDiffuse[0], pointlightDiffuse[1], pointlightDiffuse[2], 1.f);
-
-
-		ImGui::SameLine(); ImGui::Text("Pointlight Diffuse Color Picker");
-		ImGui::SameLine(); ImGuiFunctions::QuestionmarkTooltip("Click on box to pop up picker.");
-
-		ImGui::SliderFloat3("Pointlight Attenuation", pointlightAtt, 0.f, 1.f);
-
-		ImGui::SliderFloat3("Pointlight 2 Position:", pointPosition2, -120.f, 120.f);
-		pointlight[1]->setPosition(pointPosition2[0], pointPosition2[1], pointPosition2[2]);
-
-		ImGui::ColorEdit4("Pointlight 2 Diffuse", pointlightDiffuse2, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
-		pointlight[1]->setDiffuseColour(pointlightDiffuse2[0], pointlightDiffuse2[1], pointlightDiffuse2[2], 1.f);
-
-
-		ImGui::SameLine(); ImGui::Text("Pointlight Diffuse Color Picker");
-		ImGui::SameLine(); ImGuiFunctions::QuestionmarkTooltip("Click on box to pop up picker.");
-
-		ImGui::SliderFloat3("Pointlight 2 Attenuation", pointlightAtt2, 0.f, 1.f);
-
-		ImGui::SliderFloat3("Sphere position:", ballposition, -50.f, 50.f);
-
-		pointlight[0]->setAttenuationFactors(XMFLOAT3(pointlightAtt[0], pointlightAtt[1], pointlightAtt[2]));
-		pointlight[1]->setAttenuationFactors(XMFLOAT3(pointlightAtt2[0], pointlightAtt2[1], pointlightAtt2[2]));
+			pointlight[0]->setAttenuationFactors(XMFLOAT3(pointlightAtt[0], pointlightAtt[1], pointlightAtt[2]));
+			pointlight[1]->setAttenuationFactors(XMFLOAT3(pointlightAtt2[0], pointlightAtt2[1], pointlightAtt2[2]));
+		}
+		
+		ImGui::SliderFloat3("Sphere position:", ballposition, 0.f, 120.f);
 
 		ImGui::End();
 	}
@@ -1091,7 +1146,7 @@ void App1::gui()
 		ImGui::End();
 	}
 
-	//Postprocessing bool window
+	//Grass bool window
 	static bool grass = false;
 	ImGuiFunctions::ToggleButton(ImGui::Button("Grass", ImVec2(ImGui::GetWindowSize().x * 0.65f, 0.0f)), &grass);
 	ImGui::SameLine();
@@ -1120,7 +1175,9 @@ void App1::gui()
 	}
 
 	ImGui::End();
-	// Render UI
+	//End Main UI
+
+	//Render UI
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
