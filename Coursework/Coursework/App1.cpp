@@ -836,7 +836,10 @@ void App1::gui()
 	ImGui::Text("Camera Position: X: %.2f Y: %.2f Z: %.2f", camera->getPosition().x, camera->getPosition().y, camera->getPosition().z);
 	ImGui::EndMainMenuBar();
 	//End Menu Bar
-
+	ImGui::Begin("Light 1 View");
+	{            ImGui::Image((void*)verticalBlurredSceneTexture->getShaderResourceView(), ImVec2(ImGui::GetWindowSize()));
+	}
+	ImGui::End();
 
 	//Start Main UI
 	ImGui::Begin("Shader Settings");

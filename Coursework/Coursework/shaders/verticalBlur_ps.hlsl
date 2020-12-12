@@ -26,6 +26,7 @@ float4 main(InputType input) : SV_TARGET
     weights[3] = 0.005977f;
     weights[4] = 0.000229f;
     
+    
     for (int i = 0; i < 5.f;i++)
     {
         totalWeight += weights[i];
@@ -41,15 +42,23 @@ float4 main(InputType input) : SV_TARGET
 
         float texelSize = 1.0f / screenHeight;
     // Add the vertical pixels to the colour by the specific weight of each.
-        colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * -4.0f)) * weights[4];
-        colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * -3.0f)) * weights[3];
-        colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * -2.0f)) * weights[2];
-        colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * -1.0f)) * weights[1];
-        colour += shaderTexture.Sample(SampleType, input.tex) * weights[0];
-        colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * 1.0f)) * weights[1];
-        colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * 2.0f)) * weights[2];
-        colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * 3.0f)) * weights[3];
-        colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * 4.0f)) * weights[4];
+    for (int i = 1; i < 5;i++)
+    {
+        colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * -i)) * weights[i];
+        colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * i)) * weights[i];
+
+    }
+    colour += shaderTexture.Sample(SampleType, input.tex) * weights[0];
+    
+        //colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * -4.0f)) * weights[4];
+        //colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * -3.0f)) * weights[3];
+        //colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * -2.0f)) * weights[2];
+        //colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * -1.0f)) * weights[1];
+        //colour += shaderTexture.Sample(SampleType, input.tex) * weights[0];
+        //colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * 1.0f)) * weights[1];
+        //colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * 2.0f)) * weights[2];
+        //colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * 3.0f)) * weights[3];
+        //colour += shaderTexture.Sample(SampleType, input.tex + float2(0.0f, texelSize * 4.0f)) * weights[4];
  
     // Set the alpha channel to one.
         colour.a = 1.0f;
