@@ -9,13 +9,13 @@
 #pragma region My Class Headers
 
 #include "HeightmapShader.h" //Include Terrain Shader Class
-#include "TessellationShader.h" //Include Water Shader Class
+#include "WaterWavesShader.h" //Include Water Shader Class
 #include "QuadPlaneMesh.h" //Include Plane made from Quads ready for tessellation.
 #include "DepthShaderHeightmap.h" //Include Optimized Shader for Terrain Depth Passes.
 #include "DepthShader.h" //Include Basic Depth Shader.
 #include "TextureShader.h" //Include Basic Texture Shader.
-#include "GeometryShader.h" //Include Grass shader.
-#include "GeometryShaderDepth.h" //Include the Optimized Grass Shader for Depth Passes.
+#include "GrassShader.h" //Include Grass shader.
+#include "GrassShaderDepth.h" //Include the Optimized Grass Shader for Depth Passes.
 #include "HorizontalBlurShader.h" //Include the Horizontal Blur Shader for Postprocessing.
 #include "VerticalBlurShader.h" //Include the Vertical Blur Shader for Postprocessing.
 #include "DepthOfFieldShader.h" //Include the Depth of Field Shader for Postprocessing.
@@ -120,7 +120,7 @@ private:
 	#pragma region Water Declarations Settings
 
 	//Water Shader
-	TessellationShader* WaterShader; //Shader for the Water Simulation.
+	WaterWavesShader* WaterShader; //Shader for the Water Simulation.
 
 	//Angle of wave (direction) (default must initialized in radiants) (ImGui).
 	float WaveDirection[3] = { 2.0618f ,3.15f,1.13f };
@@ -180,8 +180,8 @@ private:
 	#pragma region Grass
 
 	//Geometry Grass Shaders
-	GeometryShader* grassShader; //Shader for Grass Generation.
-	GeometryShaderDepth* grassShaderDepth;  //Optimized Grass Shader for the Depth pass.
+	GrassShader* grassShader; //Shader for Grass Generation.
+	GrassShaderDepth* grassShaderDepth;  //Optimized Grass Shader for the Depth pass.
 
 	//Colors of the Grass Blades
 	float topGrassColor[4] = { 0.0f, .3f, 0.f, 1.f };	//The Color to display at the Highest Point of the Grass Blade (ImGui).

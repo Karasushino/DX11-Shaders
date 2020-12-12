@@ -1,5 +1,4 @@
-// Light shader.h
-// Geometry shader example.
+//Geometry Grass Shader.
 #pragma once
 
 #include "DXF.h"
@@ -8,13 +7,13 @@ using namespace std;
 using namespace DirectX;
 
 
-class GeometryShader : public BaseShader
+class GrassShader : public BaseShader
 {
 
 public:
 
-	GeometryShader(ID3D11Device* device, HWND hwnd);
-	~GeometryShader();
+	GrassShader(ID3D11Device* device, HWND hwnd);
+	~GrassShader();
 
 	
 

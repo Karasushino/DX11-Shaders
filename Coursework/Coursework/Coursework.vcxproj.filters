@@ -37,8 +37,29 @@
     <Filter Include="Resource Files\Heightmap Shaders\Heightmap Depth Shaders">
       <UniqueIdentifier>{beb9ca8a-2abf-4e93-91e9-0081123083c2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\Grass Shader\Grass Depth Shader">
-      <UniqueIdentifier>{ef939871-62f5-426c-ac76-bce61a44081f}</UniqueIdentifier>
+    <Filter Include="Source Files\Terrain cpp">
+      <UniqueIdentifier>{bb42c11f-6f97-4eba-8989-09793cd70d02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Basic Shaders and Mesh">
+      <UniqueIdentifier>{71f1236f-060e-441a-8c25-d64c7df15c70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Grass cpp">
+      <UniqueIdentifier>{a54ca723-d3c5-4fba-9295-24c9fa23310b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Water cpp">
+      <UniqueIdentifier>{e84005a8-48f3-4ee5-8a59-c21925ee6718}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Grass Headers">
+      <UniqueIdentifier>{f4ec130d-11ec-464f-89f9-aef1a4619b43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Terrain Headers">
+      <UniqueIdentifier>{ff65eee6-727b-49cb-9c53-62a1fc5cf7f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Water Headers">
+      <UniqueIdentifier>{aa5a482a-0f64-4f22-a702-67d501f6490f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Basic Shaders and Mesh Headers">
+      <UniqueIdentifier>{24e288c9-542e-41ec-893d-155ddabece16}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -46,30 +67,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="QuadPlaneMesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HeightmapShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DepthShaderHeightmap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DepthShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TessellationShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GeometryShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LightedTextureShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HorizontalBlurShader.cpp">
@@ -81,33 +78,33 @@
     <ClCompile Include="DepthOfFieldShader.cpp">
       <Filter>Source Files\Post Processing cpp</Filter>
     </ClCompile>
-    <ClCompile Include="GeometryShaderDepth.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="HeightmapShader.cpp">
+      <Filter>Source Files\Terrain cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthShaderHeightmap.cpp">
+      <Filter>Source Files\Terrain cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="QuadPlaneMesh.cpp">
+      <Filter>Source Files\Basic Shaders and Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureShader.cpp">
+      <Filter>Source Files\Basic Shaders and Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthShader.cpp">
+      <Filter>Source Files\Basic Shaders and Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="GrassShader.cpp">
+      <Filter>Source Files\Grass cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="GrassShaderDepth.cpp">
+      <Filter>Source Files\Grass cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="WaterWavesShader.cpp">
+      <Filter>Source Files\Water cpp</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App1.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="QuadPlaneMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HeightmapShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TessellationShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DepthShaderHeightmap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DepthShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LightedTextureShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HorizontalBlurShader.h">
@@ -122,49 +119,43 @@
     <ClInclude Include="BufferHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GeometryShaderDepth.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GeometryShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ImGuiFunctions.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GrassShaderDepth.h">
+      <Filter>Header Files\Grass Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="GrassShader.h">
+      <Filter>Header Files\Grass Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthShaderHeightmap.h">
+      <Filter>Header Files\Terrain Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="HeightmapShader.h">
+      <Filter>Header Files\Terrain Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="WaterWavesShader.h">
+      <Filter>Header Files\Water Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthShader.h">
+      <Filter>Header Files\Basic Shaders and Mesh Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="QuadPlaneMesh.h">
+      <Filter>Header Files\Basic Shaders and Mesh Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureShader.h">
+      <Filter>Header Files\Basic Shaders and Mesh Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\heightmapDepth_ds.hlsl">
       <Filter>Resource Files\Heightmap Shaders\Heightmap Depth Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="baseShadow_ps.hlsl">
-      <Filter>Resource Files\Base Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="baseShadow_vs.hlsl">
-      <Filter>Resource Files\Base Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="shaders\depth_vs.hlsl">
       <Filter>Resource Files\Base Shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\depth_ps.hlsl">
       <Filter>Resource Files\Base Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\depth_heightmap_vs.hlsl">
-      <Filter>Resource Files\Base Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\triangle_ds.hlsl">
-      <Filter>Resource Files\Grass Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\triangle_gs.hlsl">
-      <Filter>Resource Files\Grass Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\triangle_hs.hlsl">
-      <Filter>Resource Files\Grass Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\triangle_ps.hlsl">
-      <Filter>Resource Files\Grass Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\triangle_vs.hlsl">
-      <Filter>Resource Files\Grass Shader</Filter>
     </FxCompile>
     <FxCompile Include="shaders\heightmap_ds.hlsl">
       <Filter>Resource Files\Heightmap Shaders</Filter>
@@ -177,18 +168,6 @@
     </FxCompile>
     <FxCompile Include="shaders\heightmap_vs.hlsl">
       <Filter>Resource Files\Heightmap Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\tessellation_ds.hlsl">
-      <Filter>Resource Files\Water Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\tessellation_hs.hlsl">
-      <Filter>Resource Files\Water Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\tessellation_ps.hlsl">
-      <Filter>Resource Files\Water Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\tessellation_vs.hlsl">
-      <Filter>Resource Files\Water Shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\texture_ps.hlsl">
       <Filter>Resource Files\Base Shaders</Filter>
@@ -214,11 +193,32 @@
     <FxCompile Include="depthOfField_ps.hlsl">
       <Filter>Resource Files\Postprocessing Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\grassDepth_ds.hlsl">
-      <Filter>Resource Files\Grass Shader\Grass Depth Shader</Filter>
+    <FxCompile Include="shaders\water_ds.hlsl">
+      <Filter>Resource Files\Water Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\grassDepth_gs.hlsl">
-      <Filter>Resource Files\Grass Shader\Grass Depth Shader</Filter>
+    <FxCompile Include="shaders\water_hs.hlsl">
+      <Filter>Resource Files\Water Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\water_ps.hlsl">
+      <Filter>Resource Files\Water Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\water_vs.hlsl">
+      <Filter>Resource Files\Water Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\grass_ds.hlsl">
+      <Filter>Resource Files\Grass Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\grass_gs.hlsl">
+      <Filter>Resource Files\Grass Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\grass_hs.hlsl">
+      <Filter>Resource Files\Grass Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\grass_ps.hlsl">
+      <Filter>Resource Files\Grass Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\grass_vs.hlsl">
+      <Filter>Resource Files\Grass Shader</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

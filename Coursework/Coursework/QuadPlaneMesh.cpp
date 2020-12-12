@@ -1,6 +1,6 @@
 #include "QuadPlaneMesh.h"
 
-// initialise buffers and load texture.
+//Initialise buffers and load texture.
 QuadPlaneMesh::QuadPlaneMesh(ID3D11Device* device, ID3D11DeviceContext* deviceContext, int lresolution)
 {
 	resolution = lresolution;
@@ -8,10 +8,10 @@ QuadPlaneMesh::QuadPlaneMesh(ID3D11Device* device, ID3D11DeviceContext* deviceCo
 	
 }
 
-// Release resources.
+//Release resources.
 QuadPlaneMesh::~QuadPlaneMesh()
 {
-	// Run parent deconstructor
+	//Run parent deconstructor
 	BaseMesh::~BaseMesh();
 }
 
@@ -144,7 +144,7 @@ void QuadPlaneMesh::sendData(ID3D11DeviceContext* deviceContext, D3D_PRIMITIVE_T
 
 	deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	// Set the type of primitive that should be rendered from this vertex buffer, in this case control patch for tessellation.
+	//Set the type of primitive that should be rendered from this vertex buffer, in this case control patch for tessellation.
 	deviceContext->IASetPrimitiveTopology(top);
 
 }

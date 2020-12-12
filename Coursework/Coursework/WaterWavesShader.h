@@ -1,5 +1,4 @@
-// Light shader.h
-// Basic single light shader setup
+//Water Shader that uses Trochoidal waves for fluid simulation.
 #pragma once
 
 #include "DXF.h"
@@ -9,13 +8,12 @@ using namespace std;
 using namespace DirectX;
 
 
-class TessellationShader : public BaseShader
+class WaterWavesShader : public BaseShader
 {
 
 public:
 	//Define number of Pointlights
 	static const int numberOfPointlights = 2;
-
 
 	struct HullBufferType {
 		float tessellationFactor;
@@ -80,8 +78,8 @@ public:
 	};
 
 
-	TessellationShader(ID3D11Device* device, HWND hwnd);
-	~TessellationShader();
+	WaterWavesShader(ID3D11Device* device, HWND hwnd);
+	~WaterWavesShader();
 
 	void setHullShaderParameters(ID3D11DeviceContext* deviceContext, float tessellationFactor, float dynamicTessellationFactor,
 		bool dynmaicTesellationToggle, float distanceScalar);
@@ -107,21 +105,21 @@ private:
 
 
 
-	ID3D11Buffer* matrixBuffer;
-	ID3D11Buffer* hullBuffer;
-	ID3D11Buffer* cameraBuffer;
-	ID3D11Buffer* SeaBuffer;
+	ID3D11Buffer* matrixBuffer; //Buffer containing view,projection and world matrices.
+	ID3D11Buffer* hullBuffer; //Buffer containing data for tessellation.
+	ID3D11Buffer* cameraBuffer; //Buffer containing position of camera.
+	ID3D11Buffer* SeaBuffer; //Buffer with all the Water Wave Settings.
 
-	ID3D11Buffer* WaterBuffer;
-	ID3D11Buffer* WaterColorBuffer;
+	ID3D11Buffer* WaterBuffer; //Buffer cointaining data to calculate the color based on depth.
+	ID3D11Buffer* WaterColorBuffer; //Buffer cointaining data of the 2 colors to lerp between.
 
 
 	//Lighting buffer and samplers
-	ID3D11Buffer* lightMatrixBuffer;
-	ID3D11Buffer* dirLightBuffer;
-	ID3D11Buffer* pointLightBuffer;
+	ID3D11Buffer* lightMatrixBuffer; //Buffer containing all the matrix data for lights.
+	ID3D11Buffer* dirLightBuffer; //Directional light buffer data.
+	ID3D11Buffer* pointLightBuffer; //Pointlight buffer data.
 
-	ID3D11SamplerState* sampleStateShadow;
+	ID3D11SamplerState* sampleStateShadow; //Sampler state to sample depth maps.
 
 
 

@@ -175,14 +175,13 @@
     <ClCompile Include="DepthOfFieldShader.cpp" />
     <ClCompile Include="DepthShader.cpp" />
     <ClCompile Include="DepthShaderHeightmap.cpp" />
-    <ClCompile Include="GeometryShader.cpp" />
-    <ClCompile Include="GeometryShaderDepth.cpp" />
+    <ClCompile Include="GrassShader.cpp" />
+    <ClCompile Include="GrassShaderDepth.cpp" />
     <ClCompile Include="HorizontalBlurShader.cpp" />
-    <ClCompile Include="LightedTextureShader.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="QuadPlaneMesh.cpp" />
     <ClCompile Include="HeightmapShader.cpp" />
-    <ClCompile Include="TessellationShader.cpp" />
+    <ClCompile Include="WaterWavesShader.cpp" />
     <ClCompile Include="TextureShader.cpp" />
     <ClCompile Include="VerticalBlurShader.cpp" />
   </ItemGroup>
@@ -192,30 +191,17 @@
     <ClInclude Include="DepthOfFieldShader.h" />
     <ClInclude Include="DepthShader.h" />
     <ClInclude Include="DepthShaderHeightmap.h" />
-    <ClInclude Include="GeometryShader.h" />
-    <ClInclude Include="GeometryShaderDepth.h" />
+    <ClInclude Include="GrassShader.h" />
+    <ClInclude Include="GrassShaderDepth.h" />
     <ClInclude Include="HorizontalBlurShader.h" />
     <ClInclude Include="ImGuiFunctions.h" />
-    <ClInclude Include="LightedTextureShader.h" />
     <ClInclude Include="QuadPlaneMesh.h" />
     <ClInclude Include="HeightmapShader.h" />
-    <ClInclude Include="TessellationShader.h" />
+    <ClInclude Include="WaterWavesShader.h" />
     <ClInclude Include="TextureShader.h" />
     <ClInclude Include="VerticalBlurShader.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="baseShadow_ps.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="baseShadow_vs.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
     <FxCompile Include="depthOfField_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -228,20 +214,11 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\depth_heightmap_vs.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-    </FxCompile>
     <FxCompile Include="shaders\depth_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="shaders\depth_vs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="shaders\grassDepth_ds.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
-    </FxCompile>
-    <FxCompile Include="shaders\grassDepth_gs.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
     </FxCompile>
     <FxCompile Include="shaders\heightmapDepth_ds.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
@@ -268,19 +245,19 @@
     <FxCompile Include="shaders\horizontalBlur_vs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\tessellation_ds.hlsl">
+    <FxCompile Include="shaders\water_ds.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Domain</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\tessellation_hs.hlsl">
+    <FxCompile Include="shaders\water_hs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Hull</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Hull</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\tessellation_ps.hlsl">
+    <FxCompile Include="shaders\water_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\tessellation_vs.hlsl">
+    <FxCompile Include="shaders\water_vs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
@@ -290,19 +267,19 @@
     <FxCompile Include="shaders\texture_vs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\triangle_ds.hlsl">
+    <FxCompile Include="shaders\grass_ds.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\triangle_gs.hlsl">
+    <FxCompile Include="shaders\grass_gs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\triangle_hs.hlsl">
+    <FxCompile Include="shaders\grass_hs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Hull</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\triangle_ps.hlsl">
+    <FxCompile Include="shaders\grass_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\triangle_vs.hlsl">
+    <FxCompile Include="shaders\grass_vs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="shaders\verticalBlur_ps.hlsl">

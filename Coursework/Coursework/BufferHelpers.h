@@ -1,5 +1,5 @@
 #pragma once
-
+//Header file with Static functions desgined to make me type less.
 #include "DXF.h"
 
 using namespace std;
@@ -10,7 +10,7 @@ class BufferHelpers
 public:
 
 	
-	//Creates a Default Buffer Description
+	//Creates a Default Buffer Description @param ByteWidth of the Buffer, use sizeof().
 	static D3D11_BUFFER_DESC CreateBufferDescription(UINT ByteWidth)
 	{
 		D3D11_BUFFER_DESC bufferDesc;

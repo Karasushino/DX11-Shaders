@@ -6,7 +6,7 @@ SamplerState Sampler : register(s0);
 
 cbuffer DOPBuffer : register(b0)
 {
-      float distance;
+      float padding;
       float range;
       float nearPlane;
       float farPlane;
@@ -37,7 +37,7 @@ float4 main(InputType input) : SV_TARGET
     float sceneDepth = (-nearPlane * farPlane) / (depthValue - farPlane);
     
     //Scale of Blurring, the amount of blurring, the Alpha of the Lerp
-    float blurScale = saturate(abs(sceneDepth - distance) / range);
+    float blurScale = saturate(abs(sceneDepth) / range);
     
     //Use the alpha of the blurScale to get 
     return saturate(lerp(unbluredPixel, blurredPixel, blurScale));

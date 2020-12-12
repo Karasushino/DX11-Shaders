@@ -65,10 +65,11 @@ OutputType main(ConstantOutputType input, float3 uvwCoord : SV_DomainLocation, c
     
     // Recalculate normals for a Heightmap
     /**Source: Introduction to 3D Game Programming with DirectX11 by Frank D.Luna. Page:614-615*/
-    //Calculate neighbouring coordinates
     
+    //Size of the plane used to get Texel.
     float planeSize = 120.f;
     
+    //Calculate neighbouring coordinates
     float2 leftC = texturePosition - float2(1.f / planeSize, 0.0f);
     float2 rightC = texturePosition - float2(-1.f / planeSize, 0.0f);
     float2 bottomC = texturePosition - float2(0.0f, 1.f / planeSize);
@@ -80,21 +81,23 @@ OutputType main(ConstantOutputType input, float3 uvwCoord : SV_DomainLocation, c
     float bottomY = heightmapTexture.SampleLevel(displacementSampler, bottomC, 0).r;
     float topY = heightmapTexture.SampleLevel(displacementSampler, topC, 0).r;
     
-    //Get tange nt and bitan and cross product them to get normal. 
+    
     //Get Directional vector between right and left and get tangent.
     float3 tangent = normalize(float3(2.0f * (1.0f / 120.0f), (rightY - leftY), 0.0f));
     //Get Directional vector between top and bottom and get tangent.
     float3 bitan = normalize(float3(0.0f, (bottomY - topY), -2.0f * (1.0f / 120.0f)));
+    
+    //Get tangent and bitan and cross product them to get normal. 
     normalPosition = cross(tangent, bitan);
     
     
     
-    //All jumowombo preparation
+    //Set up variables for Geometry shader stage.
     output.tex = texturePosition;
     // Calculate the normal vector against the world matrix only and normalise.
     output.normal = mul(normalPosition, (float3x3) worldMatrix);
     output.normal = normalize(output.normal);
-     // Calculate the position of the new vertex against the world, view, and projection matrices.
+    // Calculate the position of the new vertex against the world, view, and projection matrices.
     output.position = mul(float4(vertexPosition, 1.0f), worldMatrix);
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);

@@ -1,4 +1,4 @@
-// Vertical blur shader
+//Depth of Field blur shader
 #include "DepthOfFieldShader.h"
 
 

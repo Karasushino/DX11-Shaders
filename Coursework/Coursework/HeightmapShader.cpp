@@ -232,8 +232,7 @@ void HeightmapShader::setShaderParameters(ID3D11DeviceContext* deviceContext, co
 
 void HeightmapShader::setHullShaderParameters(ID3D11DeviceContext* deviceContext, float tessellationFactor, float dynamicTessellationFactor, bool dynmaicTesellationToggle, float distanceScalar)
 {
-	//Hull buffers
-	// Lock the constant buffer so it can be written to.
+	//Hull buffer
 	result = deviceContext->Map(tessellationBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	TessellationBufferType* tessPtr = (TessellationBufferType*)mappedResource.pData;
 	tessPtr->distanceScalar = distanceScalar;

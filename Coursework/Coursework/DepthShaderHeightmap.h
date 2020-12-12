@@ -29,6 +29,6 @@ private:
 	void initShader(const wchar_t* vsFilename, const wchar_t* hsFilename, const wchar_t* dsFilename, const wchar_t* psFilename);
 
 private:
-	ID3D11Buffer* matrixBuffer;
-	ID3D11Buffer* heighMapBuffer;
+	ID3D11Buffer* matrixBuffer; //Buffer containing view,projection and world matrices.
+	ID3D11Buffer* heighMapBuffer; //Buffer with all the Heightmap Settings.
 };

@@ -60,7 +60,7 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
 
        
   
-    
+    //Sample Heightmap texture.
     float4 temp = heightmapTexture.SampleLevel(displacementSampler, texturePosition.xy, 0);
     float height = temp.y;
     vertexPosition.y = height * amplitude;

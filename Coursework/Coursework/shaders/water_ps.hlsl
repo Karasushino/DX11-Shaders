@@ -67,11 +67,9 @@ float4 calcSpecular(float3 lightDirection, float3 normal, float3 viewVector, flo
     float3 reflection = normalize(intensity * normal + lightDirection);
     float3 halfway = normalize(lightDirection + viewVector);
     
+    //Determine the amount of specular light based on the reflection vector, viewing direction, and specular power.
     float4 specularIntensity = pow(max(dot(halfway, normal), 0.0), specularPower);
-       
-    //    // Determine the amount of specular light based on the reflection vector, viewing direction, and specular power.
-    //float4 specularIntensity = pow(saturate(dot(reflection, viewVector)), 600);
-    
+
     return saturate(specularColour * specularIntensity);
 }
 
@@ -146,10 +144,12 @@ float2 getProjectiveCoords(float4 lightViewPosition)
     return projTex;
 }
 
-//Returns the corresponding pixel color, with shadows (not working)
+//Returns the corresponding pixel color, with shadows (not working for water)
 float4 getPointlightContribution(float shadowMapBias, InputType input)
 {
+    //Will keep track of how many times a depth map was sampled to select corrected map from array.
     int index = 0;
+    
     float4 lightColour = 0.f;
      // Calculate the projected texture coordinasetes.
     //"i" correspond for index of pointlight
@@ -169,8 +169,7 @@ float4 getPointlightContribution(float shadowMapBias, InputType input)
         
         
        
-        //"z" corresponds to the pointlight depth map
-        //Check only forward
+        //Loop 6 times then change "i" index
         for (int z = 0; z < 6; z++)
         {
             //Calculate the view position from the pointlight perspective
@@ -188,10 +187,8 @@ float4 getPointlightContribution(float shadowMapBias, InputType input)
                 {
                     //is NOT in shadow, therefore light
                 
-                   
-                
                     lightColour += calculateDiffuseLighting(lightVector, input.normal, diffuse[i] * att);
-                    //No attenuation yet, need to pass it to buffer I forgot : (
+                  
                    // lightColour = float4(1, 0, 0, 0);
 
                 }

@@ -33,8 +33,6 @@ ConstantOutputType PatchConstantFunction(InputPatch<InputType, 3> inputPatch, ui
     ConstantOutputType output;
     
  
-    
-    
     output.edges[0] = density;
     output.edges[1] = density;
     output.edges[2] = density;

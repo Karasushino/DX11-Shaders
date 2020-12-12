@@ -1,5 +1,5 @@
-// Light shader.h
-// Basic single light shader setup
+//Heightmap shader.
+
 #pragma once
 
 #include "DXF.h"
@@ -19,7 +19,6 @@ public:
 		XMMATRIX world;
 		XMMATRIX view;
 		XMMATRIX projection;
-		
 	};
 
 	//Define number of Pointlights
@@ -98,18 +97,19 @@ private:
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 
-	ID3D11Buffer* matrixBuffer;
-	ID3D11Buffer* lightMatrixBuffer;
+	ID3D11Buffer* matrixBuffer; //Buffer containing view,projection and world matrices.
 
-	ID3D11Buffer* hullBuffer;
-	ID3D11Buffer* cameraBuffer;
-	ID3D11Buffer* heighMapBuffer;
-	ID3D11Buffer* dirLightBuffer;
-	ID3D11Buffer* pointLightBuffer;
+	ID3D11Buffer* cameraBuffer; //Buffer containing position of camera.
 
-	ID3D11Buffer* tessellationBuffer;
+	ID3D11Buffer* heighMapBuffer;  //Buffer with all the Heightmap Settings.
 
-	ID3D11Buffer* tilingBuffer;
+	ID3D11Buffer* tessellationBuffer; //Buffer containing data for tessellation.
 
-	ID3D11SamplerState* sampleStateShadow;
+	ID3D11Buffer* tilingBuffer; //Buffer with a variable to change texture tiling.
+
+	//Light Buffers
+	ID3D11Buffer* dirLightBuffer; //Directional light buffer data.
+	ID3D11Buffer* pointLightBuffer; //Pointlight buffer data.
+	ID3D11Buffer* lightMatrixBuffer; //Buffer containing all the matrix data for lights.
+	ID3D11SamplerState* sampleStateShadow; //Sampler state to sample depth maps.
 };

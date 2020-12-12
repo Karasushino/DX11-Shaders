@@ -1,8 +1,10 @@
-Texture2D windSwayTexture : register(t0);
+//Geometry shader that generates a triangle for every vertex.
+Texture2D texture0 : register(t0);
 Texture2D noiseTexture : register(t1);
 Texture2D grassSpawnTexture : register(t2);
 
 SamplerState Sampler0 : register(s0);
+SamplerState Sampler1 : register(s1);
 
 cbuffer MatrixBuffer : register(b0)
 {
@@ -14,21 +16,26 @@ cbuffer MatrixBuffer : register(b0)
 cbuffer GrassBuffer : register(b1)
 {
     float time;
-    float3 padding;
+    float maxHeight;
+    float width;
+    float windStrength;
+    
+    float frequency;
+    float spawnTreshold;
+    float2 padding;
 };
 
 struct InputType
 {
     float4 position : POSITION;
     float2 tex : TEXCOORD0;
-    float3 normal : NORMAL;
     float4 worldPosition : TEXCOORD1;
 };
 
 struct OutputType
 {
     float4 position : SV_POSITION;
-    float4 depthPosition : TEXCOORD0;
+    float2 tex : TEXCOORD0;
 };
 
 //Converts to homegenous coords
@@ -42,7 +49,8 @@ OutputType makeNewVertex(float3 transformation, InputType input[3], float2 uv)
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
     
-    output.depthPosition = input[0].worldPosition + float4(transformation.xyz, 0.f);
+    output.tex = uv;
+
     return output;
 }
 
@@ -82,110 +90,97 @@ float3 AddRotation(float3 pos, float rotationScalar)
 void drawGrassBlade(OutputType output, InputType input[3], inout TriangleStream<OutputType> triStream)
 {
     //Variables will be buffer
-    float maxHeight = 9.f;
-    float height = maxHeight;
-    float width = 0.5f;
-    float windStrength = 1.5f;
-    float frequency = 0.05f;
+    //float maxHeight = 2.f;
+    float height = maxHeight; //Max Heigth of the grass blade.
+    //float width = 0.5f;
+    //float windStrength = 1.5f;
+    //float frequency = 0.05f;
     /////////////////////////////////////
     
     //Frac wil return the fractional number of the input value, meaning it will always go between 0 and 1
     float2 uv = frac(input[0].tex + time * frequency);
    
-    //Substracting 0.5 will make it go forward in backwards, without it the grass its only pushed.
-    float2 windTexture = windSwayTexture.SampleLevel(Sampler0, uv, 0) - 0.5f;
+    /**Sample the 2 values from the DuDv texture for the grass sway
+    Substracting 0.5 will make it go forward in backwards, without it the grass its only pushed.*/
+    float2 windTexture = texture0.SampleLevel(Sampler1, uv, 0) - 0.5f;
     
+    //The amount that will be added to the position of the grass blade to simulate sway.
     float2 windFactor = float2(windTexture.x, windTexture.y) * windStrength;
-    float randomRotation = noiseTexture.SampleLevel(Sampler0, input[0].tex, 0);
-    float randomLocation = randomRotation - 0.5;
     
+    //Sample the value from the noise map and use it as the value for the rotation function.
+    float randomRotation = noiseTexture.SampleLevel(Sampler0, input[0].tex, 0);
+    float randomLocation = randomRotation - 0.5; //Use the same sampled value for the rotation but offset it by half so its back and forward.
+    
+    //Also use the same value sampled for the rotation and use it as a pseudorandom scalar for the height of the grass blades.
     height *= randomRotation;
 
-    if (height < maxHeight/3)
-    {
-        height = maxHeight / 3;
-    }
+    //Clamp the values so the grass its not too small.
+    if (height < maxHeight / 3.f)
+        height = maxHeight / 3.f;
     
    
-    //down right triangle
-	// Move the vertex away from the point position
+    //Down right triangle
+	//Move the vertex away from the point position
     output = makeNewVertex(AddRotation(float3(0.2 * width + randomLocation, 0, 0 + randomLocation), randomRotation), input, float2(1, 1));
     triStream.Append(output);
-	// Move the vertex away from the point position
+	//Move the vertex away from the point position
     output = makeNewVertex(AddRotation(float3((0.15 + windFactor.x / 3.f) * width + randomLocation, 0.4 * height, windFactor.y / 6.f + randomLocation), randomRotation), input, float2(1, 0.6f));
     triStream.Append(output);
-	// Move the vertex away from the point position
+	//Move the vertex away from the point position
     output = makeNewVertex(AddRotation(float3(-0.2 * width + randomLocation, 0.0, 0 + randomLocation), randomRotation), input, float2(0, 1));
     triStream.Append(output);
     triStream.RestartStrip();
     
-    //down left triangle
-    // Move the vertex away from the point position
+    //Down left triangle
+    //Move the vertex away from the point position
     output = makeNewVertex(AddRotation(float3(-0.2 * width + randomLocation, 0.0, 0 + randomLocation), randomRotation), input, float2(0, 1));
     triStream.Append(output);
-    // Move the vertex away from the point position
+    //Move the vertex away from the point position
     output = makeNewVertex(AddRotation(float3((0.15 + windFactor.x / 3.f) * width + randomLocation, 0.4 * height, windFactor.y / 6.f + randomLocation), randomRotation), input, float2(0.8f, 0.6f));
     triStream.Append(output);
-    // Move the vertex away from the point position
+    //Move the vertex away from the point position
     output = makeNewVertex(AddRotation(float3((-0.15 + windFactor.x / 3.f) * width + randomLocation, 0.4 * height, windFactor.y / 6.f + randomLocation), randomRotation), input, float2(0.2f, 0.6f));
     triStream.Append(output);
     triStream.RestartStrip();
     
-    //mid right triangle
-     // Move the vertex away from the point position
+    //Mid right triangle
+    //Move the vertex away from the point position
     output = makeNewVertex(AddRotation(float3((-0.15 + windFactor.x / 3.f) * width + randomLocation, 0.4 * height, windFactor.y / 6.f + randomLocation), randomRotation), input, float2(0.2f, 0.6f));
     triStream.Append(output);
-    // Move the vertex away from the point position
+    //Move the vertex away from the point position
     output = makeNewVertex(AddRotation(float3((0.15 + windFactor.x / 3.f) * width + randomLocation, 0.4 * height, windFactor.y / 6.f + randomLocation), randomRotation), input, float2(0.8f, 0.6f));
     triStream.Append(output);
-    // Move the vertex away from the point position
+    //Move the vertex away from the point position
     output = makeNewVertex(AddRotation(float3((0.1 + windFactor.x / 1.5f) * width + randomLocation, 0.8 * height, windFactor.y + randomLocation), randomRotation), input, float2(0.6f, 0.3f));
     triStream.Append(output);
     triStream.RestartStrip();
 
-    //mid left triangle
-     // Move the vertex away from the point position
+    //Mid left triangle
+    //Move the vertex away from the point position
     output = makeNewVertex(AddRotation(float3((0.1 + windFactor.x / 1.5f) * width + randomLocation, 0.8 * height, windFactor.y + randomLocation), randomRotation), input, float2(0.6f, 0.3f));
     triStream.Append(output);
-    // Move the vertex away from the point position
+    //Move the vertex away from the point position
     output = makeNewVertex(AddRotation(float3((-0.1 + windFactor.x / 1.5f) * width + randomLocation, 0.8 * height, windFactor.y + randomLocation), randomRotation), input, float2(0.3f, 0.3f));
     triStream.Append(output);
-    // Move the vertex away from the point position
+    //Move the vertex away from the point position
     output = makeNewVertex(AddRotation(float3((-0.15 + windFactor.x / 3.f) * width + randomLocation, 0.4 * height, windFactor.y / 6.f + randomLocation), randomRotation), input, float2(0.2f, 0.6f));
     triStream.Append(output);
     triStream.RestartStrip();
     
-    //top right
-    // Move the vertex away from the point position
+    //Top right
+    //Move the vertex away from the point position
     output = makeNewVertex(AddRotation(float3((0.1 + windFactor.x / 1.5f) * width + randomLocation, 0.8 * height, windFactor.y + randomLocation), randomRotation), input, float2(0.6f, 0.3f));
     triStream.Append(output);
-    // Move the vertex away from the point position
+    //Move the vertex away from the point position
     output = makeNewVertex(AddRotation(float3((0 + windFactor.x * 1.5f) * width + randomLocation, 1.2 * height, windFactor.y * 2 + randomLocation), randomRotation), input, float2(0.5f, 0));
     triStream.Append(output);
-    // Move the vertex away from the point position
+    //Move the vertex away from the point position
     output = makeNewVertex(AddRotation(float3((-0.1 + windFactor.x / 1.5f) * width + randomLocation, 0.8 * height, windFactor.y + randomLocation), randomRotation), input, float2(0.3f, 0.3f));
     triStream.Append(output);
     
     
 }
 
-///https://www.mathworks.com/matlabcentral/answers/108850-what-would-the-angles-be-for-a-3d-vector
-float calculateStepnessFromNormal(InputType input[3])
-{
-    float angle = 0.f;
-    
-    float dotProd = dot(input[0].normal, float3(0, 0, 1));
-    float lengthA = length(float3(0, 0, 1));
-    float lenghtB = length(input[0].normal);
-    
-    
-    
-    angle = acos(dotProd / dot(lenghtB, lengthA));
-    
- 
- 
-    return angle;
-}
 
 [maxvertexcount(15)]
 void main(triangle InputType input[3], inout TriangleStream<OutputType> triStream)
@@ -193,17 +188,10 @@ void main(triangle InputType input[3], inout TriangleStream<OutputType> triStrea
 
     OutputType output;
     
-    float height = 2.f;
-    
-    //float maxAngleToSpawnGrass = 1.f;
-    //float slopeAngle = calculateStepnessFromNormal(input);
-    
-    
-    ////Draw the grass blade on the vertex. With a random value later we can edit if it spawns or not
-    //if (maxAngleToSpawnGrass > slopeAngle)
+    //Sample from a Noise map a value that will determine if grass blade spawns or not.
     float grassNoiseSpawn = grassSpawnTexture.SampleLevel(Sampler0, input[0].tex, 0);
-    float spawnTreshold = 0.7f;
     
+    //Check with the sampled value if the grass blade should be generated or not.
     if (grassNoiseSpawn < spawnTreshold)
         drawGrassBlade(output, input, triStream);
     

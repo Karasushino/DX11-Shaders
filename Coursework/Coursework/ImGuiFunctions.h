@@ -1,5 +1,5 @@
 #pragma once
-
+//Header file with Static functions for extra ImGui Functionality.
 class ImGuiFunctions
 {
 public:
@@ -22,6 +22,7 @@ public:
 	}
 
 	//From ImGui demo cpp
+	//Shows a question mark in the UI that you can hover over and a tooltip pops.
 	static void QuestionmarkTooltip(const char* text)
 	{
 		ImGui::TextDisabled("(?)");
@@ -35,6 +36,7 @@ public:
 		}
 	}
 
+	//Shows a red exclamation mark in the UI that you can hover over and a tooltip pops.
 	static void ExclamationmarkTooltip(const char* text)
 	{
 		ImGui::TextColored(ImVec4(1,0,0,1),"(!)");

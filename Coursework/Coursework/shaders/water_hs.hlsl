@@ -5,7 +5,7 @@ cbuffer HullBuffer : register(b0)
 {
     float tessellationFactor;
     float dynamicTessellationFactor;
-    int dynmaicTesellationToggle;
+    int dynmaicTessellationToggle;
     float distanceScalar;
 }
 cbuffer HullCameraBuffer : register(b1)
@@ -41,7 +41,7 @@ ConstantOutputType PatchConstantFunction(InputPatch<InputType, 4> inputPatch, ui
     
 
     
-    if (dynmaicTesellationToggle == 1)
+    if (dynmaicTessellationToggle == 1)
     {
         
         //Get the middle point of the patch points
@@ -50,6 +50,8 @@ ConstantOutputType PatchConstantFunction(InputPatch<InputType, 4> inputPatch, ui
         avgPos += inputPatch[2].position;
         avgPos += inputPatch[3].position;
         avgPos /= 4.0f;
+        
+        //Get the distance from the Plane.
         float3 distanceFromPlane = distance(cameraPosition, avgPos);
     
         output.edges[0] = clamp(distanceScalar / distanceFromPlane * dynamicTessellationFactor, 1, 64);
@@ -88,13 +90,13 @@ OutputType main(InputPatch<InputType, 4> patch, uint pointId : SV_OutputControlP
     OutputType output;
 
 
-    // Set the position for this control point as the output position.
+    //Pass the position for this control point as the output position.
     output.position = patch[pointId].position;
 
-    // Set the input colour as the output colour.
-   // Store the texture coordinates for the pixel shader.
+    //Pass the texture coordinates.
     output.tex = patch[pointId].tex;
 
+    //Pass the normals.
     output.normal = patch[pointId].normal;
 
     return output;

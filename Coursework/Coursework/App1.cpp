@@ -205,7 +205,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	//The plane of the Water
 	waterPlaneMesh = new QuadPlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 120);
 	//Shaders that uses Trochoidal waves to create realistic water simulation.
-	WaterShader = new TessellationShader(renderer->getDevice(), hwnd);
+	WaterShader = new WaterWavesShader(renderer->getDevice(), hwnd);
 
 	//Default values of the Waves.
 		#pragma region Water Waves Defaults
@@ -237,11 +237,11 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	grassMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 120);
 
 	//Optimized shader for depth pass calculation (not currectly working need to FIX)
-	grassShaderDepth = new GeometryShaderDepth(renderer->getDevice(), hwnd);
+	grassShaderDepth = new GrassShaderDepth(renderer->getDevice(), hwnd);
 	
 
 	//Shader responsible of the Generation of the Grass plane. 
-	grassShader = new GeometryShader(renderer->getDevice(), hwnd);
+	grassShader = new GrassShader(renderer->getDevice(), hwnd);
 
 	#pragma endregion
 
@@ -307,10 +307,8 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 App1::~App1()
 {
-	// Run base application deconstructor
+	//Run base application deconstructor
 	BaseApplication::~BaseApplication();
-
-	// Release the Direct3D object.
 
 }
 
@@ -449,18 +447,17 @@ void App1::depthPass()
 		depthShader->setShaderParameters(renderer->getDeviceContext(), cubeWorldMatrix, lightViewMatrix, lightProjectionMatrix);
 		depthShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
 
-
-		// Render terrain
-		grassMesh->sendData(renderer->getDeviceContext());
-		grassShaderDepth->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture(L"WindMap"), time, getTerrainHeigthmap(),
+		// Render grass (Doesn't work well since it needs a more detailed Depth Map to cast detailed shadows.)
+		/*grassMesh->sendData(renderer->getDeviceContext(), D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+		grassShaderDepth->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture(L"WindMap"), getTerrainHeigthmap(),
 			textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"), amplitude);
-		grassShaderDepth->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
-
+		grassShaderDepth->setHullshaderParameters(renderer->getDeviceContext(), grassDensity);
+		grassShaderDepth->setGeometryShaderParameters(renderer->getDeviceContext(), grassMaxHeight, grassWidth, windStrength, windFrequency, time, grassSpawnThreshold);
+		grassShaderDepth->render(renderer->getDeviceContext(), grassMesh->getIndexCount());*/
 
 		// Set back buffer as render target and reset view port.
 		renderer->setBackBufferRenderTarget();
 		renderer->resetViewport();
-
 
 }
 
@@ -487,14 +484,13 @@ void App1::cameraDepthPass()
 
 	//Render Grass with Geometry Cull turned Off
 	renderer->setNoCullMode(true);
-	grassMesh->sendData(renderer->getDeviceContext(), D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-	grassShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, camViewMatrix, camProjectionMatrix, textureMgr->getTexture(L"WindMap"), getTerrainHeigthmap(),
-		textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"), amplitude, directionalLight, depthmapDirectional->getDepthMapSRV());
 
-	grassShader->setPixelShaderParameters(renderer->getDeviceContext(), bottomGrassColor, topGrassColor);
-	grassShader->setHullshaderParameters(renderer->getDeviceContext(), grassDensity);
-	grassShader->setGeometryShaderParameters(renderer->getDeviceContext(), grassMaxHeight, grassWidth, windStrength, windFrequency, time, grassSpawnThreshold);
-	grassShader->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
+	grassMesh->sendData(renderer->getDeviceContext(), D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+	grassShaderDepth->setShaderParameters(renderer->getDeviceContext(), worldMatrix, camViewMatrix, camProjectionMatrix, textureMgr->getTexture(L"WindMap"), getTerrainHeigthmap(),
+		textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"), amplitude);
+	grassShaderDepth->setHullshaderParameters(renderer->getDeviceContext(), grassDensity);
+	grassShaderDepth->setGeometryShaderParameters(renderer->getDeviceContext(), grassMaxHeight, grassWidth, windStrength, windFrequency, time, grassSpawnThreshold);
+	grassShaderDepth->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
 	renderer->setNoCullMode(false);
 
 	// Set back buffer as render target and reset view port.
@@ -544,12 +540,13 @@ void App1::pointlightDepthPass()
 			depthShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
 			
 
-			// Render terrain
-			grassMesh->sendData(renderer->getDeviceContext());
-			grassShaderDepth->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture(L"WindMap"), time, getTerrainHeigthmap(),
+			// Render grass
+			/*grassMesh->sendData(renderer->getDeviceContext(), D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+			grassShaderDepth->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture(L"WindMap"), getTerrainHeigthmap(),
 				textureMgr->getTexture(L"Noise"), textureMgr->getTexture(L"GrassSpawn"), amplitude);
-			grassShaderDepth->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
-
+			grassShaderDepth->setHullshaderParameters(renderer->getDeviceContext(), grassDensity);
+			grassShaderDepth->setGeometryShaderParameters(renderer->getDeviceContext(), grassMaxHeight, grassWidth, windStrength, windFrequency, time, grassSpawnThreshold);
+			grassShaderDepth->render(renderer->getDeviceContext(), grassMesh->getIndexCount());*/
 
 			// Set back buffer as render target and reset view port.
 			renderer->setBackBufferRenderTarget();
@@ -807,7 +804,6 @@ void App1::finalPass()
 		finalRender = renderTexture->getShaderResourceView();
 
 
-
 	// RENDER THE RENDER TEXTURE SCENE
 	// Requires 2D rendering and an ortho mesh.
 	renderer->setZBuffer(false);
@@ -820,14 +816,11 @@ void App1::finalPass()
 	renderer->setZBuffer(true);
 
 
-	
-
 	// Render GUI
 	gui();
 	// Present the rendered scene to the screen.
 	renderer->endScene();
 }
-
 
 void App1::gui()
 {

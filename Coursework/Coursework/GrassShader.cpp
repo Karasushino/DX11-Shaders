@@ -1,12 +1,12 @@
 // geometry shader.cpp
-#include "GeometryShader.h"
+#include "GrassShader.h"
 
-GeometryShader::GeometryShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
+GrassShader::GrassShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
-	initShader(L"triangle_vs.cso",L"triangle_hs.cso", L"triangle_ds.cso" ,L"triangle_gs.cso", L"triangle_ps.cso");
+	initShader(L"grass_vs.cso",L"grass_hs.cso", L"grass_ds.cso" ,L"grass_gs.cso", L"grass_ps.cso");
 }
 
-GeometryShader::~GeometryShader()
+GrassShader::~GrassShader()
 {
 	// Release the sampler state.
 	if (sampleState)
@@ -22,6 +22,56 @@ GeometryShader::~GeometryShader()
 		matrixBuffer = 0;
 	}
 
+	// Release the matrix constant buffer.
+	if (grassBuffer)
+	{
+		grassBuffer->Release();
+		grassBuffer = 0;
+	}
+
+	// Release the heightmap constant buffer.
+	if (heightmapBuffer)
+	{
+		heightmapBuffer->Release();
+		heightmapBuffer = 0;
+	}
+
+	// Release the hull constant buffer.
+	if (hullBuffer)
+	{
+		hullBuffer->Release();
+		hullBuffer = 0;
+	}
+
+	// Release the sampler for shadows.
+	if (sampleStateShadow)
+	{
+		sampleStateShadow->Release();
+		sampleStateShadow = 0;
+	}
+
+	// Release the buffer of the light matrices.
+	if (lightMatrixBuffer)
+	{
+		lightMatrixBuffer->Release();
+		lightMatrixBuffer = 0;
+	}
+
+	// Release the buffer for directional light.
+	if (dirLightBuffer)
+	{
+		dirLightBuffer->Release();
+		dirLightBuffer = 0;
+	}
+
+
+	// Release the grass buffer.
+	if (grassColorbuffer)
+	{
+		grassColorbuffer->Release();
+		grassColorbuffer = 0;
+	}
+
 	// Release the layout.
 	if (layout)
 	{
@@ -34,7 +84,7 @@ GeometryShader::~GeometryShader()
 }
 
 
-void GeometryShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilename)
+void GrassShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilename)
 {
 	// Load (+ compile) shader files
 	loadVertexShader(vsFilename);
@@ -46,40 +96,38 @@ void GeometryShader::initShader(const wchar_t* vsFilename, const wchar_t* psFile
 	//Sampler for DepthMaps
 	D3D11_SAMPLER_DESC shadowSamplerDesc = BufferHelpers::CreateShadowSamplerDescription();
 	renderer->CreateSamplerState(&samplerDesc, &sampleStateShadow);
-	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+
+	//Setup the description of Matrix Buffer.
 	D3D11_BUFFER_DESC matrixBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(MatrixBufferType));
 	renderer->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
 
-	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	//Setup the description of Grass Buffer.
 	D3D11_BUFFER_DESC grassBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(GrassBufferType));
-	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
 	renderer->CreateBuffer(&grassBufferDesc, NULL, &grassBuffer);
 
-	// Setup the description of the dynamic matrix constant buffer that is in the pixel shader.
-		D3D11_BUFFER_DESC lightMatrixBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(LightMatrixBufferType));
+	// Setup the description of the dynamic matrix constant buffer of the lights that is in the pixel shader.
+	D3D11_BUFFER_DESC lightMatrixBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(LightMatrixBufferType));
 	renderer->CreateBuffer(&lightMatrixBufferDesc, NULL, &lightMatrixBuffer);
 
-	// Setup light buffer
-	// Setup the description of the light dynamic constant buffer that is in the pixel shader.
+	// Setup light settings buffer Pixel shader.
 	D3D11_BUFFER_DESC lightBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(DirectionalLightBufferType));
-
 	renderer->CreateBuffer(&lightBufferDesc, NULL, &dirLightBuffer);
 
-
+	//Buffer description settings for the heightmap.
 	D3D11_BUFFER_DESC heightmapBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(HeightmapBufferType));
 	renderer->CreateBuffer(&heightmapBufferDesc, NULL, &heightmapBuffer);
 
-
+	//Setup Buffer description of the Buffer to set the color settings of the grass.
 	D3D11_BUFFER_DESC grassColorBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(GrassColorBufferType));
 	renderer->CreateBuffer(&grassColorBufferDesc, NULL, &grassColorbuffer);
 
-
+	//Setup Hull buffer to control density of grass.
 	D3D11_BUFFER_DESC hullBufferDesc = BufferHelpers::CreateBufferDescription(sizeof(GrassDensityBufferType));
 	renderer->CreateBuffer(&hullBufferDesc, NULL, &hullBuffer);
 
 }
 
-void GeometryShader::initShader(const wchar_t* vsFilename, const wchar_t* hsFilename, const wchar_t* dsFilename, const wchar_t* gsFilename, const wchar_t* psFilename)
+void GrassShader::initShader(const wchar_t* vsFilename, const wchar_t* hsFilename, const wchar_t* dsFilename, const wchar_t* gsFilename, const wchar_t* psFilename)
 {
 	// InitShader must be overwritten and it will load both vertex and pixel shaders + setup buffers
 	initShader(vsFilename, psFilename);
@@ -91,16 +139,14 @@ void GeometryShader::initShader(const wchar_t* vsFilename, const wchar_t* hsFile
 }
 
 
-void GeometryShader::setHullshaderParameters(ID3D11DeviceContext* deviceContext, float grassDensity)
+void GrassShader::setHullshaderParameters(ID3D11DeviceContext* deviceContext, float grassDensity)
 {
-	//Pixel Shader Parameters
 
-	// Send light data to pixel shader
 	GrassDensityBufferType* densityPtr;
 
 	deviceContext->Map(hullBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 
-	//Set directional light buffer
+	//Set density buffer data.
 	densityPtr = (GrassDensityBufferType*)mappedResource.pData;
 	densityPtr->density = grassDensity;
 	densityPtr->padding = XMFLOAT3(0, 0, 0);
@@ -110,11 +156,12 @@ void GeometryShader::setHullshaderParameters(ID3D11DeviceContext* deviceContext,
 	deviceContext->HSSetConstantBuffers(1, 1, &hullBuffer);
 }
 
-void GeometryShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* height, ID3D11ShaderResourceView* noise
+void GrassShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* height, ID3D11ShaderResourceView* noise
 	,ID3D11ShaderResourceView* grassNoise, float amplitude, Light* directionalLight, ID3D11ShaderResourceView* directionalDepthTex)
 {
 	MatrixBufferType* dataPtr;
-	// Transpose the matrices to prepare them for the shader.
+
+	//Transpose the matrices to prepare them for the shader.
 	XMMATRIX tworld = XMMatrixTranspose(worldMatrix);
 	XMMATRIX tview = XMMatrixTranspose(viewMatrix);
 	XMMATRIX tproj = XMMatrixTranspose(projectionMatrix);
@@ -183,11 +230,11 @@ void GeometryShader::setShaderParameters(ID3D11DeviceContext* deviceContext, con
 
 }
 
-void GeometryShader::setPixelShaderParameters(ID3D11DeviceContext* deviceContext, float bottomColor[4], float topColor[4])
+void GrassShader::setPixelShaderParameters(ID3D11DeviceContext* deviceContext, float bottomColor[4], float topColor[4])
 {
 	//Pixel Shader Parameters
 
-	// Send light data to pixel shader
+	//Send data about the color of the grass
 	GrassColorBufferType* grassPtr;
 	deviceContext->Map(grassColorbuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 
@@ -203,9 +250,9 @@ void GeometryShader::setPixelShaderParameters(ID3D11DeviceContext* deviceContext
 
 }
 
-void GeometryShader::setGeometryShaderParameters(ID3D11DeviceContext* deviceContext, float maxHeight, float width, float windStrength, float frequency,float time, float spawnTreshold)
+void GrassShader::setGeometryShaderParameters(ID3D11DeviceContext* deviceContext, float maxHeight, float width, float windStrength, float frequency,float time, float spawnTreshold)
 {
-	//Set grass buffer
+	//Set grass buffer settings
 	GrassBufferType* grassPtr;
 	deviceContext->Map(grassBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	grassPtr = (GrassBufferType*)mappedResource.pData;

@@ -1,25 +1,81 @@
-// tessellation shader.cpp
-#include "tessellationshader.h"
+//Water simulation shader.
+#include "WaterWavesShader.h"
 
 
-TessellationShader::TessellationShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
+WaterWavesShader::WaterWavesShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
-	initShader(L"tessellation_vs.cso", L"tessellation_hs.cso", L"tessellation_ds.cso", L"tessellation_ps.cso");
+	initShader(L"water_vs.cso", L"water_hs.cso", L"water_ds.cso", L"water_ps.cso");
 }
 
 
-TessellationShader::~TessellationShader()
+WaterWavesShader::~WaterWavesShader()
 {
 	if (sampleState)
 	{
 		sampleState->Release();
 		sampleState = 0;
 	}
+
 	if (matrixBuffer)
 	{
 		matrixBuffer->Release();
 		matrixBuffer = 0;
 	}
+
+	if (hullBuffer)
+	{
+		hullBuffer->Release();
+		hullBuffer = 0;
+	}
+
+	if (cameraBuffer)
+	{
+		cameraBuffer->Release();
+		cameraBuffer = 0;
+	}
+
+	if (SeaBuffer)
+	{
+		SeaBuffer->Release();
+		SeaBuffer = 0;
+	}
+
+	if (WaterBuffer)
+	{
+		WaterBuffer->Release();
+		WaterBuffer = 0;
+	}
+
+	if (WaterColorBuffer)
+	{
+		WaterColorBuffer->Release();
+		WaterColorBuffer = 0;
+	}
+
+	if (lightMatrixBuffer)
+	{
+		lightMatrixBuffer->Release();
+		lightMatrixBuffer = 0;
+	}
+
+	if (dirLightBuffer)
+	{
+		dirLightBuffer->Release();
+		dirLightBuffer = 0;
+	}
+
+	if (pointLightBuffer)
+	{
+		pointLightBuffer->Release();
+		pointLightBuffer = 0;
+	}
+
+	if (sampleStateShadow)
+	{
+		sampleStateShadow->Release();
+		sampleStateShadow = 0;
+	}
+
 	if (layout)
 	{
 		layout->Release();
@@ -30,7 +86,7 @@ TessellationShader::~TessellationShader()
 	BaseShader::~BaseShader();
 }
 
-void TessellationShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilename)
+void WaterWavesShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilename)
 {
 	
 
@@ -89,7 +145,7 @@ void TessellationShader::initShader(const wchar_t* vsFilename, const wchar_t* ps
 
 }
 
-void TessellationShader::initShader(const wchar_t* vsFilename, const wchar_t* hsFilename, const wchar_t* dsFilename, const wchar_t* psFilename)
+void WaterWavesShader::initShader(const wchar_t* vsFilename, const wchar_t* hsFilename, const wchar_t* dsFilename, const wchar_t* psFilename)
 {
 	// InitShader must be overwritten and it will load both vertex and pixel shaders + setup buffers
 	initShader(vsFilename, psFilename);
@@ -99,7 +155,7 @@ void TessellationShader::initShader(const wchar_t* vsFilename, const wchar_t* hs
 	loadDomainShader(dsFilename);
 }
 
-void TessellationShader::setHullShaderParameters(ID3D11DeviceContext* deviceContext, float tessellationFactor, float dynamicTessellationFactor, bool dynmaicTesellationToggle, float distanceScalar)
+void WaterWavesShader::setHullShaderParameters(ID3D11DeviceContext* deviceContext, float tessellationFactor, float dynamicTessellationFactor, bool dynmaicTesellationToggle, float distanceScalar)
 {
 
 	// Lock the constant buffer so it can be written to.
@@ -113,7 +169,7 @@ void TessellationShader::setHullShaderParameters(ID3D11DeviceContext* deviceCont
 	deviceContext->HSSetConstantBuffers(0, 1, &hullBuffer);
 }
 
-void TessellationShader::setPixelShaderParameters(ID3D11DeviceContext* deviceContext, float waterOffset, float depthScalar, float Sealevel, float amplitude, float deepColor[4],
+void WaterWavesShader::setPixelShaderParameters(ID3D11DeviceContext* deviceContext, float waterOffset, float depthScalar, float Sealevel, float amplitude, float deepColor[4],
 	float shallowColor[4], ID3D11ShaderResourceView* heightTexture)
 {
 	result = deviceContext->Map(WaterBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -142,7 +198,7 @@ void TessellationShader::setPixelShaderParameters(ID3D11DeviceContext* deviceCon
 	deviceContext->PSSetShaderResources(1, 1, &heightTexture);
 }
 
-void TessellationShader::setLightingShaderParameters(ID3D11DeviceContext* deviceContext, Light* directionalLight, Light* pointlight[], ID3D11ShaderResourceView* directionalDepthTex, ID3D11ShaderResourceView* pointDepthTex[], XMMATRIX pointlightViewMatrix[]
+void WaterWavesShader::setLightingShaderParameters(ID3D11DeviceContext* deviceContext, Light* directionalLight, Light* pointlight[], ID3D11ShaderResourceView* directionalDepthTex, ID3D11ShaderResourceView* pointDepthTex[], XMMATRIX pointlightViewMatrix[]
 	,bool lightToggle)
 {
 
@@ -227,7 +283,7 @@ void TessellationShader::setLightingShaderParameters(ID3D11DeviceContext* device
 
 
 
-void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
+void WaterWavesShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
 	 XMFLOAT3 CameraPosInput, XMFLOAT4 InputWaveSettings[],float InputWaveDirection[], float time)
 {
 	
