@@ -197,13 +197,13 @@ void GrassShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	dirLightPtr = (DirectionalLightBufferType*)mappedResource.pData;
 	dirLightPtr->ambient = directionalLight->getAmbientColour();
 	dirLightPtr->diffuse = directionalLight->getDiffuseColour();
-	// Set buffer pointer with pointlight position -->  Note: I hate that I can't do getPosition().xyz, makes line too long.
+	// Set buffer pointer with directionalLight position -->  Note: I hate that I can't do getPosition().xyz, makes line too long.
 	dirLightPtr->direction = XMFLOAT4(directionalLight->getDirection().x, directionalLight->getDirection().y, directionalLight->getDirection().z, 1.f);
 
 	deviceContext->Unmap(dirLightBuffer, 0);
 
 	
-	//Set pointlight light buffer
+	//Set light matrix buffer
 	LightMatrixBufferType* lightMatrixPtr;
 	deviceContext->Map(lightMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	lightMatrixPtr = (LightMatrixBufferType*)mappedResource.pData;

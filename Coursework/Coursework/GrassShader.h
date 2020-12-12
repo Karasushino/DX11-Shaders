@@ -35,8 +35,6 @@ public:
 		XMFLOAT3 padding;
 	};
 
-	//Define number of Pointlights
-	static const int numberOfPointlights = 1;
 	struct LightMatrixBufferType
 	{
 		//Directional light matrix
@@ -85,16 +83,18 @@ private:
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 
 
-	ID3D11Buffer* matrixBuffer;
-	ID3D11Buffer* grassBuffer;
-	ID3D11Buffer* heightmapBuffer;
+	ID3D11Buffer* matrixBuffer;	//Buffer containing view,projection and world matrices.
+	ID3D11Buffer* grassBuffer;	//Buffer containing the grass settings.
+	ID3D11Buffer* heightmapBuffer; //Buffer containing the data settings of the heightmap (amplitude).
 
+	//Lighting buffer and samplers
+	ID3D11Buffer* lightMatrixBuffer; //Buffer containing all the matrix data for lights.
+	ID3D11Buffer* dirLightBuffer; //Directional light buffer data.
+	ID3D11Buffer* pointLightBuffer; //Pointlight buffer data.
+	
+	ID3D11Buffer* hullBuffer; //Buffer for the density of the grass.
 
-	ID3D11Buffer* lightMatrixBuffer;
-	ID3D11Buffer* hullBuffer;
-	ID3D11Buffer* dirLightBuffer;
+	ID3D11Buffer* grassColorbuffer; //Buffer that contains the 2 colors of the grass.
 
-	ID3D11Buffer* grassColorbuffer;
-
-	ID3D11SamplerState* sampleStateShadow;
+	ID3D11SamplerState* sampleStateShadow; //Sampler state to sample depth maps.
 };

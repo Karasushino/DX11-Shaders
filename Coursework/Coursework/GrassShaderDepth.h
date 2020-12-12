@@ -78,12 +78,12 @@ private:
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 
 
-	ID3D11Buffer* matrixBuffer;
-	ID3D11Buffer* grassBuffer;
-	ID3D11Buffer* heightmapBuffer;
+	ID3D11Buffer* matrixBuffer;	//Buffer containing view,projection and world matrices.
+	ID3D11Buffer* grassBuffer; //Buffer containing the grass settings.
+	ID3D11Buffer* heightmapBuffer; //Buffer containing the data settings of the heightmap (amplitude).
 
 
-	ID3D11Buffer* hullBuffer;
+	ID3D11Buffer* hullBuffer; //Buffer for the density of the grass.
 
-	ID3D11SamplerState* sampleStateShadow;
+	ID3D11SamplerState* sampleStateShadow; //Sampler state to sample depth maps.
 };
