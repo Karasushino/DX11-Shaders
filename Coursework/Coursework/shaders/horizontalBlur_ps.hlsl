@@ -20,13 +20,17 @@ float4 main(InputType input) : SV_TARGET
     float4 colour;
 
 	// Create the weights that each neighbor pixel will contribute to the blur.
-    weights[0] = 0.382928f;
-    weights[1] = 0.241732f;
-    weights[2] = 0.060598f;
-    weights[3] = 0.005977f;
-    weights[4] = 0.000229f;
+    //weights[0] = 0.382928f;
+    //weights[1] = 0.241732f;
+    //weights[2] = 0.060598f;
+    //weights[3] = 0.005977f;
+    //weights[4] = 0.000229f;
     
-  
+    weights[0] = 0.1f;
+    weights[1] = 0.1f;
+    weights[2] = 0.1f;
+    weights[3] = 0.1f;
+    weights[4] = 0.1f;
     
     for (int i = 0; i < 5.f; i++)
     {
@@ -54,6 +58,8 @@ float4 main(InputType input) : SV_TARGET
 
     }
     colour += shaderTexture.Sample(SampleType, input.tex) * weights[0];
+    
+    
     
     
     //colour += shaderTexture.Sample(SampleType, input.tex + float2(texelSize * -4.0f, 0.0f)) * weights[4];

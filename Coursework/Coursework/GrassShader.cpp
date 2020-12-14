@@ -64,7 +64,6 @@ GrassShader::~GrassShader()
 		dirLightBuffer = 0;
 	}
 
-
 	// Release the grass buffer.
 	if (grassColorbuffer)
 	{
@@ -137,7 +136,6 @@ void GrassShader::initShader(const wchar_t* vsFilename, const wchar_t* hsFilenam
 	loadDomainShader(dsFilename);
 	loadGeometryShader(gsFilename);
 }
-
 
 void GrassShader::setHullshaderParameters(ID3D11DeviceContext* deviceContext, float grassDensity)
 {
