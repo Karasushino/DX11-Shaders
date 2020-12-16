@@ -483,6 +483,8 @@ void App1::cameraDepthPass()
 	depthShader->render(renderer->getDeviceContext(), CubeShadow->getIndexCount());
 
 	//Render Grass with Geometry Cull turned Off
+	if (renderGrass)
+	{
 	renderer->setNoCullMode(true);
 
 	grassMesh->sendData(renderer->getDeviceContext(), D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
@@ -492,6 +494,7 @@ void App1::cameraDepthPass()
 	grassShaderDepth->setGeometryShaderParameters(renderer->getDeviceContext(), grassMaxHeight, grassWidth, windStrength, windFrequency, time, grassSpawnThreshold);
 	grassShaderDepth->render(renderer->getDeviceContext(), grassMesh->getIndexCount());
 	renderer->setNoCullMode(false);
+	}
 
 	// Set back buffer as render target and reset view port.
 	renderer->setBackBufferRenderTarget();
