@@ -2,7 +2,6 @@
 //Header file with Static functions desgined to make me type less.
 #include "DXF.h"
 
-using namespace std;
 using namespace DirectX;
 
 class BufferHelpers

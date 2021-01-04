@@ -23,11 +23,9 @@ float4 main(InputType input) : SV_TARGET
     //Sample Unblurred Pixel(Get pixel of the normal scene)
     float4 unbluredPixel = sceneTexture.Sample(Sampler, input.tex);
     
-   // unbluredPixel = float4(0, 0, 1, 1);
     //Sample Blurred Pixel (Get blurred pixel of the blurred scene)
     float4 blurredPixel = blurredTexture.Sample(Sampler, input.tex);
     
-   // blurredPixel = float4(1, 0, 0, 1);
     //Get Depth map Pixel value (The amount of Blur)
     float depthValue = depthMap.Sample(Sampler, input.tex);
     //Invert it, since the closest in depth map is black and we want 1 to be the closest instead (more blur)
@@ -41,6 +39,5 @@ float4 main(InputType input) : SV_TARGET
     
     //Use the alpha of the blurScale to get 
     return saturate(lerp(unbluredPixel, blurredPixel, blurScale));
-    
-    
+        
 }

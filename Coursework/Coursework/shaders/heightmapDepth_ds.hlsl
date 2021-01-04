@@ -61,8 +61,7 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
        
   
     //Sample Heightmap texture.
-    float4 temp = heightmapTexture.SampleLevel(displacementSampler, texturePosition.xy, 0);
-    float height = temp.y;
+    float height = heightmapTexture.SampleLevel(displacementSampler, texturePosition.xy, 0).y;
     vertexPosition.y = height * amplitude;
     
     
@@ -75,7 +74,7 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     output.depthPosition = output.position;
     
     
-    
+   
     
 
     return output;

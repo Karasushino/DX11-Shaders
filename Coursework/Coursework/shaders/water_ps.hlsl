@@ -233,8 +233,6 @@ float4 main(InputType input) : SV_TARGET
     float height = temp.y * heightmapAmplitude;
     
     float waterheightCPU = waterPlaneHeight;
-    //Treshold for depthness
-    //float offset = 4.3f;
     
     float offsetLevel = waterheightCPU + offset;
     
@@ -242,11 +240,11 @@ float4 main(InputType input) : SV_TARGET
     
     //float4 deepColor = float4(0.13f, 0.13f, 0.8f, 0.6f);
     //float4 shallowColor = float4(0.1f, 0.9f, 0.9f, 0.2f);
-    float4 lightColor = float4(1, 1, 1, 1);
     
-	// Sample the pixel color from the texture using the sampler at this texture coordinate location.
+	//Interpolate between the two colors to get final water color.
     float4 waterColor = saturate(lerp(shallowColor, deepColor, waterLevel / depthScalar));
     
+    float4 lightColor = float4(1, 1, 1, 1);
     
     //Use directional W value of the buffer to toggle on if lighting will have an effect on the water or not.
     if (direction.w == 1)
@@ -254,7 +252,7 @@ float4 main(InputType input) : SV_TARGET
         lightColor = float4(ambient.xyz, 1);
     
         lightColor += getDirectionalLightContribution(shadowMapBias, input);
-        lightColor += getPointlightContribution(shadowMapBias, input);
+        //lightColor += getPointlightContribution(shadowMapBias, input);
         //Get view matrix
         float4 viewMatrix = calculateViewMatrix(dirLightProjection, dirLightView, input);
         float3 lightDirection = normalize(-direction - input.worldPosition);
@@ -262,7 +260,7 @@ float4 main(InputType input) : SV_TARGET
 
     }
         
-    
+    //return float4(input.normal, 1.f);
     //Multiply light color by the Water Color to return lit water
     return (lightColor * waterColor);
 }

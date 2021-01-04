@@ -867,12 +867,12 @@ void App1::gui()
 		if(ImGui::CollapsingHeader("Wave 1 Settings"))
 		{
 			ImGui::SliderFloat("Wave Amplitude", &WaveSettings[0].y, 0.1f, 2.0f);
-			ImGui::SliderFloat("Wave Frequency: ", &WaveSettings[0].z, 1.0f, 20.0f);
-			ImGui::SliderFloat("Wave Speed: ", &WaveSettings[0].w, 1.0f, 20.0f);
+			ImGui::SliderFloat("Wavelength", &WaveSettings[0].z, 1.0f, 20.0f);
+			ImGui::SliderFloat("Wave Speed", &WaveSettings[0].w, 1.0f, 20.0f);
 			//Smootheness
 		//Direction Vector
-			ImGui::SliderAngle("Wave Direction: ", &WaveDirection[0], 0.0f, 180.0f);
-			ImGui::SliderFloat("Wave Smoothness: ", &WaveSettings[0].x, 0.0f, 1.0f);
+			ImGui::SliderAngle("Wave Direction", &WaveDirection[0], 0.0f, 180.0f);
+			ImGui::SliderFloat("Wave Roughness", &WaveSettings[0].x, 0.0f, 1.0f);
 		}
 		ImGui::Separator();
 
@@ -880,12 +880,12 @@ void App1::gui()
 		if (ImGui::CollapsingHeader("Wave 2 Settings"))
 		{
 			ImGui::SliderFloat("Wave 2 Amplitude", &WaveSettings[1].y, 0.1f, 2.0f);
-			ImGui::SliderFloat("Wave 2 Frequency: ", &WaveSettings[1].z, 1.0f, 20.0f);
-			ImGui::SliderFloat("Wave 2 Speed: ", &WaveSettings[1].w, 1.0f, 20.0f);
+			ImGui::SliderFloat("Wavelength 2", &WaveSettings[1].z, 1.0f, 20.0f);
+			ImGui::SliderFloat("Wave 2 Speed", &WaveSettings[1].w, 1.0f, 20.0f);
 			//Smootheness
 			//Direction Vector
-			ImGui::SliderAngle("Wave 2 Direction: ", &WaveDirection[1], 0.0f, 180.0f);
-			ImGui::SliderFloat("Wave 2 Smoothness: ", &WaveSettings[1].x, 0.0f, 1.0f);
+			ImGui::SliderAngle("Wave 2 Direction", &WaveDirection[1], 0.0f, 180.0f);
+			ImGui::SliderFloat("Wave 2 Roughness", &WaveSettings[1].x, 0.0f, 1.0f);
 			
 		}
 		ImGui::Separator();
@@ -895,12 +895,12 @@ void App1::gui()
 		{
 			
 			ImGui::SliderFloat("Wave 3 Amplitude", &WaveSettings[2].y, 0.1f, 2.0f);
-			ImGui::SliderFloat("Wave 3 Frequency: ", &WaveSettings[2].z, 1.0f, 20.0f);
-			ImGui::SliderFloat("Wave 3 Speed: ", &WaveSettings[2].w, 1.0f, 20.0f);
+			ImGui::SliderFloat("Wavelength 3", &WaveSettings[2].z, 1.0f, 20.0f);
+			ImGui::SliderFloat("Wave 3 Speed", &WaveSettings[2].w, 1.0f, 20.0f);
 			//Smootheness
 			//Direction Vector
-			ImGui::SliderAngle("Wave 3 Direction: ", &WaveDirection[2], 0.0f, 180.0f);
-			ImGui::SliderFloat("Wave 3 Smoothness: ", &WaveSettings[2].x, 0.0f, 1.0f);
+			ImGui::SliderAngle("Wave 3 Direction", &WaveDirection[2], 0.0f, 180.0f);
+			ImGui::SliderFloat("Wave 3 Roughness", &WaveSettings[2].x, 0.0f, 1.0f);
 			
 		}
 		ImGui::Separator();

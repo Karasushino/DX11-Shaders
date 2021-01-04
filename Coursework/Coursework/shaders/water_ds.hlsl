@@ -91,6 +91,7 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
    
     vertexPosition = float4(Wave.vertexPosition, 1);
     normalPosition = Wave.normal;
+    normalPosition.y = 1- Wave.normal.y;
     
     for (int i = 1; i<3; i++)
     {
@@ -98,9 +99,9 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
    
        vertexPosition += float4(Wave.vertexPosition, 1);
        
-        //Nvidia says that 1- should b outside of the total sum
+        
        normalPosition.x += Wave.normal.x;
-       normalPosition.y += 1 - Wave.normal.y;
+        normalPosition.y += 1 - Wave.normal.y; //Invert normal. 
        normalPosition.z += Wave.normal.z;
     }
     
@@ -135,8 +136,8 @@ WaveCalculations CalculateWaves(float4 vertexPositions, float4 waveSettings, flo
     //float phaseSpeed = sqrt(waveSettings.w * numberOfWaves);
     
   
-    //Spacial Wavenumber ()
-    //The spatial wavenumber tells you the number of wavelengths per unit distance https://sciencing.com/calculate-wavenumber-5152608.html
+    //Angular Wavenumber ()
+    //The angular wavenumber tells you the number of wavelengths per unit distance https://sciencing.com/calculate-wavenumber-5152608.html
     float numberOfWaves = ((3.141516 * 2) / waveSettings.z);
     
     // Nvidia suggests to do to prevent waves overlaping with each other and get the maximum height possible ()
@@ -156,32 +157,31 @@ WaveCalculations CalculateWaves(float4 vertexPositions, float4 waveSettings, flo
     range of 0 to 1, and using Qi = Q/(wi Ai x numWaves) to vary from totally smooth waves to the sharpest waves we can produce.*/
     
     //This makes sure that the smoothenes value will never be big enough to make the waves overlap with each other and look bad
-    float clampedWavePeak = waveSettings.x * sqrt(numberOfWaves) * waveSettings.y;
-    if (clampedWavePeak > 1.0f)
-        clampedWavePeak = 1.0f;
+    float clampedWavePeak = waveSettings.x * numberOfWaves * waveSettings.y;
+    
+    //if (clampedWavePeak > 1.0f)
+        //clampedWavePeak = 1.0f;
     
     //Calculate amplitude to apply on the wave (without getting any overlaping) (for X and Z values, for the Y we still use inputed Amplitude)
-    float amplitude = clampedWavePeak / (waveSettings.y * numberOfWaves * sqrt(numberOfWaves));
+    //float amplitude = clampedWavePeak / (waveSettings.y * numberOfWaves * numberOfWaves);
     
-    //Get direction and normalize it (Make sure its between 0 and 1)
+    float amplitude = clampedWavePeak * waveSettings.y;
+    
+    //Get direction and normalize it
     float2 waveDirection = normalize(WaveDirection.xy);
     
     //Precalculated trigonometric value that will create the wave (The thing to put inside the trigonometric functions)
     float TrigValue = numberOfWaves * dot(waveDirection, vertexPositions.xz) + waveSettings.w * time;
 
     
-    //Note: Multiplying the number of waves inside of the trigonometric functions changes the frequency of the waves, however doing it outside as NVIDIA suggests does not
+    //Note: Multiplying the number of waves inside of the trigonometric functions changes the frequency of the waves
     //It acts as a speed multiplier instead.
     //Calculate Vertex
     vertexPositions.x += amplitude * (waveDirection.x * cos(TrigValue));
     vertexPositions.y = waveSettings.y * sin(TrigValue);
     vertexPositions.z += amplitude * (waveDirection.y * cos(TrigValue));
 
-    //Calculate Normals
-    /*float3 normal = float3(-waveDirection.x * waveSettings.y * cos(TrigValue),
-    1 - clampedWavePeak*(waveSettings.y) * sin(TrigValue),
-    waveDirection.y * waveSettings.y * cos(TrigValue));*/
-    
+    //Calculate Normals  
     float3 normal = float3(-waveDirection.x * waveSettings.y * cos(TrigValue),
     clampedWavePeak*(waveSettings.y) * sin(TrigValue),
     waveDirection.y * waveSettings.y * cos(TrigValue));

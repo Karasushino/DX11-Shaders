@@ -70,13 +70,12 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     float3 normalPosition = lerp(n1, n2, uvwCoord.x);
     
     //Sample Heightmap texture.
-    float4 temp = heightmapTexture.SampleLevel(displacementSampler, texturePosition.xy, 0);
-    float height = temp.y;
+    float height = heightmapTexture.SampleLevel(displacementSampler, texturePosition.xy, 0).y;
     vertexPosition.y = height * amplitude;
     
     
     // Recalculate normals for a Heightmap
-    /**Source: Introduction to 3D Game Programming with DirectX11 by Frank D.Luna. Page:614-615*/
+    /**Source: Introduction to 3D Game Programming with DirectX11 by Frank D.Luna. Page:529*/
     
     //Size of the plane used to get Texel.
     float planeSize = 120.f;
